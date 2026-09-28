@@ -1,0 +1,88 @@
+{
+  "@@locale": "tr",
+  "appTitle": "ERP",
+  "loading": "Yükleniyor…",
+  "retry": "Tekrar dene",
+  "close": "Kapat",
+  "yes": "Evet",
+  "no": "Hayır",
+
+  "loginTitle": "Giriş",
+  "loginSubtitle": "Devam etmek için giriş yapın",
+  "loginUsername": "Kullanıcı adı",
+  "loginPassword": "Şifre",
+  "loginButton": "Giriş yap",
+  "loginUsernameRequired": "Kullanıcı adı gerekli",
+  "loginFailed": "Kullanıcı adı veya şifre hatalı.",
+  "loginUnexpectedError": "Giriş yapılamadı. Lütfen tekrar deneyin.",
+  "loginDemoAccounts": "Demo kullanıcılar",
+
+  "emptyStateSelectModule": "Soldan bir modül seçin",
+  "noAccessTitle": "Yetkiniz yok",
+  "noAccessMessage": "Bu modülü görüntüleme yetkiniz bulunmuyor.",
+  "moduleNotFoundTitle": "Modül bulunamadı",
+  "moduleNotFoundMessage": "\"{moduleKey}\" adlı bir modül bulunamadı.",
+  "@moduleNotFoundMessage": {
+    "placeholders": { "moduleKey": { "type": "String" } }
+  },
+
+  "tabLimitReached": "Açık modül sınırına ulaştınız, birini kapatın",
+  "tabRefresh": "Yenile",
+  "tabClose": "Kapat",
+  "tabCloseOthers": "Diğerlerini kapat",
+  "tabCloseRight": "Sağdakileri kapat",
+  "tabCloseAll": "Tümünü kapat",
+  "tabAllTabs": "Tüm sekmeler",
+  "tabScrollLeft": "Sola kaydır",
+  "tabScrollRight": "Sağa kaydır",
+  "tabUnsavedChanges": "Kaydedilmemiş değişiklik",
+  "tabSemanticLabel": "{title} sekmesi",
+  "@tabSemanticLabel": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "openModules": "Açık modüller",
+  "openModulesEmpty": "Açık modül yok",
+
+  "menuToggle": "Menüyü aç/kapat",
+  "menuSearchHint": "Menüde ara",
+  "menuSearchNoResult": "Sonuç bulunamadı",
+  "menuLoadError": "Menü yüklenemedi.",
+  "menuRefreshed": "Menü yenilendi",
+  "search": "Ara",
+
+  "notifications": "Bildirimler",
+  "notificationsEmpty": "Bildirim yok",
+
+  "userMenu": "Kullanıcı menüsü",
+  "theme": "Tema",
+  "themeLight": "Açık",
+  "themeDark": "Koyu",
+  "themeSystem": "Sistem",
+  "language": "Dil",
+  "languageName": "Türkçe",
+  "refreshMenu": "Menüyü yenile",
+  "expireSession": "Oturum süresini doldur",
+  "logout": "Çıkış yap",
+
+  "sessionExpiredTitle": "Oturum sona erdi",
+  "sessionExpiredMessage": "Oturumunuz sona erdi, lütfen tekrar giriş yapın.",
+  "sessionExpiredDirtyTabs": "Kaydedilmemiş değişiklik içeren sekmeler: {tabs}. Giriş yaptıktan sonra kaldığınız yerden devam edebilirsiniz.",
+  "@sessionExpiredDirtyTabs": {
+    "placeholders": { "tabs": { "type": "String" } }
+  },
+  "sessionExpiredUser": "Kullanıcı: {name}",
+  "@sessionExpiredUser": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+
+  "modulePlaceholderInfo": "Bu modül henüz geliştirilmedi.",
+  "modulePermissions": "Yetkiler",
+  "permissionView": "Görüntüleme",
+  "permissionAdd": "Ekleme",
+  "permissionEdit": "Düzenleme",
+  "permissionDelete": "Silme",
+  "moduleQuery": "Parametreler",
+  "moduleQueryEmpty": "Parametre yok",
+  "moduleNoteLabel": "Not (sekme değişince korunur)",
+  "moduleMarkDirty": "Kaydedilmemiş değişiklik var"
+}

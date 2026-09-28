@@ -1,0 +1,1 @@
+void setHasUnsavedChanges(bool value) {}

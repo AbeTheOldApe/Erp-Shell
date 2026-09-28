@@ -1,0 +1,76 @@
+{
+  "menu": [
+    {
+      "id": 1, "title": "Satış", "icon": "shopping_cart", "moduleKey": null,
+      "sortOrder": 10, "badge": null, "permissions": null,
+      "children": [
+        {
+          "id": 11, "title": "Siparişler", "icon": "receipt_long", "moduleKey": "siparis",
+          "sortOrder": 10, "badge": null,
+          "permissions": { "canView": true, "canAdd": true, "canEdit": true, "canDelete": true },
+          "children": []
+        },
+        {
+          "id": 12, "title": "Müşteriler", "icon": "people", "moduleKey": "musteri",
+          "sortOrder": 20, "badge": null,
+          "permissions": { "canView": true, "canAdd": true, "canEdit": true, "canDelete": true },
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": 2, "title": "Depo", "icon": "warehouse", "moduleKey": null,
+      "sortOrder": 20, "badge": null, "permissions": null,
+      "children": [
+        {
+          "id": 21, "title": "Stok Durumu", "icon": "inventory_2", "moduleKey": "stok",
+          "sortOrder": 10, "badge": null,
+          "permissions": { "canView": true, "canAdd": true, "canEdit": true, "canDelete": true },
+          "children": []
+        },
+        {
+          "id": 22, "title": "Sevkiyat", "icon": "local_shipping", "moduleKey": "sevkiyat",
+          "sortOrder": 20, "badge": null,
+          "permissions": { "canView": true, "canAdd": true, "canEdit": true, "canDelete": true },
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": 3, "title": "Raporlar", "icon": "bar_chart", "moduleKey": null,
+      "sortOrder": 30, "badge": null, "permissions": null,
+      "children": [
+        {
+          "id": 31, "title": "Satış Raporu", "icon": "assessment", "moduleKey": "rapor-satis",
+          "sortOrder": 10, "badge": null,
+          "permissions": { "canView": true, "canAdd": true, "canEdit": true, "canDelete": true },
+          "children": []
+        },
+        {
+          "id": 32, "title": "Depo Raporları", "icon": "folder", "moduleKey": null,
+          "sortOrder": 20, "badge": null, "permissions": null,
+          "children": [
+            {
+              "id": 321, "title": "Stok Raporu", "icon": "analytics", "moduleKey": "rapor-stok",
+              "sortOrder": 10, "badge": null,
+              "permissions": { "canView": true, "canAdd": true, "canEdit": true, "canDelete": true },
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4, "title": "Ayarlar", "icon": "settings", "moduleKey": null,
+      "sortOrder": 40, "badge": null, "permissions": null,
+      "children": [
+        {
+          "id": 41, "title": "Kullanıcılar", "icon": "manage_accounts", "moduleKey": "kullanici",
+          "sortOrder": 10, "badge": null,
+          "permissions": { "canView": true, "canAdd": true, "canEdit": true, "canDelete": true },
+          "children": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <!--
+    `$FLUTTER_BASE_HREF` is replaced by `flutter build web --base-href`.
+    The app uses path URLs (no `#`), so the web server must rewrite every
+    unknown path to index.html (IIS: web.config rewrite, Nginx: try_files).
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="ERP">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ERP">
+
+  <title>ERP</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body { margin: 0; height: 100%; }
+    body { background: #f8f9ff; }
+    #app-loader {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 200ms ease-out;
+    }
+    #app-loader .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid rgba(51, 92, 168, 0.2);
+      border-top-color: #335ca8;
+      border-radius: 50%;
+      animation: app-loader-spin 0.9s linear infinite;
+    }
+    #app-loader.hidden { opacity: 0; pointer-events: none; }
+    @keyframes app-loader-spin { to { transform: rotate(360deg); } }
+    @media (prefers-color-scheme: dark) {
+      body { background: #111318; }
+      #app-loader .spinner { border-color: rgba(170, 199, 255, 0.2); border-top-color: #aac7ff; }
+    }
+  </style>
+
+  <script>
+    // The app manages its own context menus. Ctrl + right click still opens
+    // the browser menu (useful for debugging).
+    document.addEventListener('contextmenu', function (e) {
+      if (!e.ctrlKey) e.preventDefault();
+    });
+
+    // Bridge for unsaved changes. The Dart side sets
+    // `window.erpShell.hasUnsavedChanges` when any tab is dirty.
+    window.erpShell = { hasUnsavedChanges: false };
+    window.addEventListener('beforeunload', function (e) {
+      if (window.erpShell && window.erpShell.hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+  </script>
+</head>
+<body>
+  <div id="app-loader" role="progressbar" aria-label="Yükleniyor">
+    <div class="spinner"></div>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var loader = document.getElementById('app-loader');
+      if (!loader) return;
+      loader.classList.add('hidden');
+      setTimeout(function () { loader.remove(); }, 250);
+    });
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
