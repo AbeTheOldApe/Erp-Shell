@@ -6,6 +6,7 @@ import '../../core/l10n/locale_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/menu/menu_models.dart';
 import '../../data/menu/menu_tree.dart';
+import '../personalization/favorites_controller.dart';
 import '../shell_controller.dart';
 import '../tabs/tabs_notifier.dart';
 import 'menu_providers.dart';
@@ -23,6 +24,10 @@ class SideMenuRail extends ConsumerWidget {
     final nodes = ref.watch(menuNodesProvider);
     final activeKey = ref.watch(tabsProvider.select((s) => s.activeKey));
     final spacing = context.spacing;
+    final favorites = [
+      for (final key in ref.watch(favoriteKeysProvider))
+        ?MenuTree.findLeaf(nodes, key),
+    ];
 
     return SizedBox(
       width: spacing.railWidth,
@@ -35,6 +40,16 @@ class SideMenuRail extends ConsumerWidget {
               icon: const Icon(Icons.search),
               onPressed: onExpandRequested,
             ),
+            if (favorites.isNotEmpty)
+              _RailGroupButton(
+                node: MenuNode(
+                  id: -1,
+                  title: context.l10n.favorites,
+                  icon: 'star',
+                  children: favorites,
+                ),
+                active: favorites.any((leaf) => leaf.moduleKey == activeKey),
+              ),
             const Divider(),
             Expanded(
               child: ListView(

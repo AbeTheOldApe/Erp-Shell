@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'cockpit/cockpit_module.dart';
 import 'kullanici/kullanici_module.dart';
 import 'module_def.dart';
 import 'musteri/musteri_module.dart';
@@ -11,6 +12,7 @@ import 'stok/stok_module.dart';
 
 /// All modules known to the shell. Adding a module is one line here.
 const Map<String, ModuleDef> moduleRegistry = {
+  'cockpit': ModuleDef('cockpit', CockpitModule.new, home: true),
   'siparis': ModuleDef('siparis', SiparisModule.new),
   'musteri': ModuleDef('musteri', MusteriModule.new),
   'stok': ModuleDef('stok', StokModule.new),
@@ -24,3 +26,11 @@ const Map<String, ModuleDef> moduleRegistry = {
 final moduleRegistryProvider = Provider<Map<String, ModuleDef>>(
   (ref) => moduleRegistry,
 );
+
+/// Key of the home (Cockpit) module, if one is registered.
+final homeModuleKeyProvider = Provider<String?>((ref) {
+  for (final def in ref.watch(moduleRegistryProvider).values) {
+    if (def.home) return def.key;
+  }
+  return null;
+});

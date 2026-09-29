@@ -10,6 +10,9 @@ Mock verinin şekli, ileride backend'in uyması gereken **API sözleşmesidir**.
 | POST | `/auth/refresh` | Token yenileme |
 | POST | `/auth/logout` | Çıkış |
 | GET | `/me/menu` | Kullanıcının rol/istisna birleşiminden oluşan menü ağacı |
+| GET | `/me/favorites` | Kullanıcının favori modülleri (Faz 2; mock'ta var, gerçek API Faz 4) |
+| PUT | `/me/favorites/{moduleKey}` | Favoriye ekle (idempotent) |
+| DELETE | `/me/favorites/{moduleKey}` | Favoriden çıkar (idempotent) |
 
 Hata gövdesi (tüm uç noktalar): `{ "code": "string", "message": "string" }`. Beklenen HTTP kodları: 401 (oturum yok/süresi doldu), 403 (yetki yok).
 
@@ -65,6 +68,16 @@ Yanıt **iç içe (nested) ağaçtır**. Veritabanında düz tutulur, API ağaç
   ]
 }
 ```
+
+### GET /me/favorites
+
+Favoriler kullanıcı bazlıdır ve sunucuda tutulur (farklı cihaz/tarayıcıda da aynı liste). Sıra, eklenme sırasıdır. Menüde görünmeyen (yetkisi kalkmış) modüller istemcide gösterilmez.
+
+```json
+{ "favorites": ["siparis", "rapor-stok"] }
+```
+
+`PUT` ve `DELETE` gövde almaz; başarıda `204 No Content` döner.
 
 Alan kuralları:
 
@@ -142,6 +155,9 @@ Mock'un desteklemesi gerekenler:
 | `ui.menu.expanded.<userId>` | localStorage | Açık grup id'leri |
 | `ui.theme` | localStorage | `light` / `dark` / `system` |
 | `ui.locale` | localStorage | Dil kodu |
-| `ui.tabs.<userId>` | sessionStorage | Açık sekmeler ve aktif sekme (Faz 2) |
+| `ui.tabs.<userId>` | sessionStorage | Açık sekmeler (modül + query) ve aktif sekme (Faz 2). Sabit sekmeler kaydedilmez |
+| `ui.recent.<userId>` | localStorage | Son kullanılan 5 modül, en yenisi başta (Faz 2) |
+| `auth.logoutSignal` | localStorage | Çıkışta yazılır; diğer tarayıcı sekmeleri `storage` olayıyla çıkış yapar (Faz 2) |
+| `mock.favorites.<username>` | localStorage | Yalnızca mock: favori API'sinin "sunucu" tarafı |
 | `ui.grid.<moduleKey>.<gridId>` | localStorage | Sütun sırası/genişlik/görünürlük (Faz 3) |
 | `auth.tokens` | sessionStorage | Token'lar (gerçek API fazında yeniden değerlendirilecek) |

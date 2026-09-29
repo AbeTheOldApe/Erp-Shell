@@ -84,5 +84,37 @@
   "moduleQuery": "Parametreler",
   "moduleQueryEmpty": "Parametre yok",
   "moduleNoteLabel": "Not (sekme değişince korunur)",
-  "moduleMarkDirty": "Kaydedilmemiş değişiklik var"
+  "moduleMarkDirty": "Kaydedilmemiş değişiklik var",
+
+  "cockpitTitle": "Cockpit",
+  "cockpitPlaceholder": "Ana panel, modüller eklendikçe burada şekillenecek.",
+
+  "favorites": "Favoriler",
+  "addFavorite": "Favorilere ekle",
+  "removeFavorite": "Favorilerden çıkar",
+  "favoriteUpdateFailed": "Favoriler güncellenemedi.",
+  "favoriteRemoved": "{title} favorilerden çıkarıldı",
+  "@favoriteRemoved": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "undo": "Geri al",
+  "recentModules": "Son kullanılanlar",
+
+  "commandPaletteHint": "Modül ara…",
+  "commandPaletteTooltip": "Modül ara (Ctrl+K)",
+
+  "discardChangesTitle": "Kaydedilmemiş değişiklikler",
+  "discardChangesMessage": "Şu sekmelerde kaydedilmemiş değişiklikler var: {tabs}. Devam ederseniz bu değişiklikler kaybolacak.",
+  "@discardChangesMessage": {
+    "placeholders": { "tabs": { "type": "String" } }
+  },
+  "discardChangesConfirm": "Değişiklikleri at",
+  "cancel": "Vazgeç",
+
+  "shortcutsHelp": "Klavye kısayolları",
+  "shortcutCloseTab": "Aktif sekmeyi kapat",
+  "shortcutPreviousNextTab": "Önceki / sonraki sekme",
+  "shortcutGoToTab": "1.–9. sekmeye git",
+  "shortcutCommandPalette": "Modül ara ve aç",
+  "shortcutEscape": "Diyaloğu veya menüyü kapat"
 }

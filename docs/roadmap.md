@@ -54,16 +54,30 @@ Fazları sırayla uygula. Bir fazı bitirince kutuları işaretle. Ayrıntılı 
 
 ## Faz 2: Zenginleştirme
 
-- [ ] **Cockpit**: sabit (`pinned`) ilk sekme olarak ana panel; açılış boş durumu yerine Cockpit gelir
-- [ ] **Favoriler**: menüde yıldız, menü başında "Favoriler" bölümü (kullanıcı bazlı)
-- [ ] **Son kullanılanlar**: son 5 modül
-- [ ] **Komut paleti** (`Ctrl+K`, telefonda arama ikonu): modül arama ve açma
-- [ ] Sekme kalıcılığı: F5 sonrası açık sekmeler ve aktif sekme (`sessionStorage`)
-- [ ] Çıkış yapılınca diğer tarayıcı sekmelerinin de girişe düşmesi (`storage` olayı)
-- [ ] Modülde `isDirty` ve sekme/çıkış/`beforeunload` uyarıları (altyapı Faz 1'de, uyarı akışı burada tamamlanır)
-- [ ] Yardım diyaloğu: kısayol listesi
+- [x] **Cockpit**: sabit (`pinned`) ilk sekme olarak ana panel; açılış boş durumu yerine Cockpit gelir
+- [x] **Favoriler**: menüde yıldız, menü başında "Favoriler" bölümü (kullanıcı bazlı)
+- [x] **Son kullanılanlar**: son 5 modül
+- [x] **Komut paleti** (`Ctrl+K`, telefonda arama ikonu): modül arama ve açma
+- [x] Sekme kalıcılığı: F5 sonrası açık sekmeler ve aktif sekme (`sessionStorage`)
+- [x] Çıkış yapılınca diğer tarayıcı sekmelerinin de girişe düşmesi (`storage` olayı)
+- [x] Modülde `isDirty` ve sekme/çıkış/`beforeunload` uyarıları (altyapı Faz 1'de, uyarı akışı burada tamamlanır)
+- [x] Yardım diyaloğu: kısayol listesi
 
 **Kabul:** F5 sonrası aynı sekmeler geri gelir; Cockpit kapatılamaz; favoriler ve son kullanılanlar oturumlar arasında korunur.
+
+**Kararlar ve uygulama notları (Faz 2):**
+- **Cockpit** şimdilik yer tutucu bir modüldür (`modules/cockpit`). İçeriği ana modüller eklendikçe safha safha gelecek; yetkilendirmesi o zaman belirlenecek (şu an herkese görüntüleme yetkisiyle açılır). Kabuk Cockpit'i adıyla bilmez: `registry.dart`'ta `ModuleDef(..., home: true)` olan modül ana sekmedir, `/` adresinde gösterilir, menüde yer almaz. Ana modül kaydı yoksa eski boş durum ("Soldan bir modül seçin") görünür.
+- **Favoriler** ileride API'ye taşınacak: `FavoritesRepository` arayüzü + `MockFavoritesRepository`; önerilen uç noktalar `docs/menu-schema.md` §1'de. Mock, "sunucu" tarafını `localStorage`'da tutar ve 401/oturum akışına katılır.
+- **Son kullanılanlar** komut paletinde (boş aramada) gösterilir; aktif sekme değiştikçe güncellenir, Cockpit ve o an açık olan modül listelenmez.
+- Favori ekleyip çıkarmak "Favoriler" bölümünün boyunu değiştirip ağacı kaydırdığı için bölüm boyutunu animasyonla değiştirir; favoriden çıkarma snackbar'daki "Geri al" ile geri alınabilir (yanlış yıldıza basılırsa).
+- **Komut paleti** üst çubuktaki arama ikonuyla da açılır (tüm genişliklerde); telefonda tam ekran. Ok tuşlarıyla seçim, Enter ile açma; alt başlıkta grup yolu ("Raporlar › Depo Raporları").
+- **Kaydedilmemiş değişiklik** onayı: sekme kapatma (✕, `Alt+W`, orta tuş, bottom sheet), "Diğerlerini/Sağdakileri/Tümünü kapat", "Yenile", çıkış (kullanıcı menüsü ve oturum sona erme diyaloğu). `beforeunload` bayrağı sekmelerin dirty durumuna bağlandı.
+- Sekme kaydı çıkışta silinir; kaydedilen sekmeler, menüde yetkisi kalmayan modülleri atlayarak geri yüklenir ve sınırı aşsa da kapatılmaz.
+
+**Test edilenler (Faz 2):** `flutter test` → 54 test geçti, `flutter analyze` temiz.
+- `test/shell/phase2_test.dart`: Cockpit kapatılamaz (`Alt+W`, "Tümünü kapat", bağlam menüsünde "Kapat" yok); F5 sonrası sekmeler geri gelir (Kabul; geri yükleme kapatılınca test başarısız olduğu doğrulandı); favori ekle/çıkar, "Favoriler" bölümü ve oturumlar arası kalıcılık (Kabul); son kullanılanların oturumlar arası kalıcılığı ve paletteki bölüm (Kabul); `Ctrl+K` → arama → Enter; dirty sekmeyi kapatırken onay (Vazgeç / Değişiklikleri at); başka tarayıcı sekmesinden çıkış sinyali; `TabsPersistence` ve son kullanılanlar (5 sınırı) birim testleri.
+- Chrome'da elle denendi: Cockpit açılışı, `Ctrl+K` (tarayıcının kendi Ctrl+K'sı engelleniyor), palette ok tuşu + Enter, favori yıldızı ve bölümü, `sessionStorage`/`localStorage` kayıtları, `beforeunload` bayrağının dirty durumuyla açılıp kapanması, F5 sonrası sekmelerin ve favorilerin geri gelmesi, iki tarayıcı sekmesi arasında çıkışın yayılması.
+- Denenemeyen: gerçek `beforeunload` uyarı penceresi (tarayıcı otomasyonunu kilitlediği için tetiklenmedi; yalnızca bayrak doğrulandı).
 
 ## Faz 3: Ortak bileşenler ve örnek modül
 

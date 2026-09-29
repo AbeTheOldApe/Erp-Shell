@@ -29,9 +29,23 @@ Future<void> _openFromPanel(
 }
 
 void main() {
-  testWidgets('shows the empty state after sign-in', (tester) async {
+  testWidgets('shows the Cockpit as a pinned first tab after sign-in', (
+    tester,
+  ) async {
     await pumpApp(tester);
-    expect(find.text('Soldan bir modül seçin'), findsOneWidget);
+    expect(_tabBarTab('Cockpit'), findsOneWidget);
+    expect(
+      find.text('Ana panel, modüller eklendikçe burada şekillenecek.'),
+      findsOneWidget,
+    );
+    // Pinned: no close button on its tab.
+    expect(
+      find.descendant(
+        of: find.byType(ShellTabBar),
+        matching: find.byTooltip('Kapat'),
+      ),
+      findsNothing,
+    );
   });
 
   testWidgets('expanded: full menu and tab bar', (tester) async {
@@ -128,7 +142,8 @@ void main() {
         )
         .data!;
 
-    await altKey(LogicalKeyboardKey.digit2);
+    // Tabs: Cockpit (pinned), Stok Durumu, Siparişler.
+    await altKey(LogicalKeyboardKey.digit3);
     expect(title(), 'Siparişler');
     await altKey(LogicalKeyboardKey.arrowLeft);
     expect(title(), 'Stok Durumu');

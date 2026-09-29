@@ -18,6 +18,7 @@ abstract final class IconRegistry {
     'settings': Icons.settings_outlined,
     'manage_accounts': Icons.manage_accounts_outlined,
     'dashboard': Icons.dashboard_outlined,
+    'star': Icons.star_outline,
   };
 
   static IconData resolve(String? name) => _icons[name] ?? fallback;

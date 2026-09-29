@@ -72,5 +72,31 @@
   "moduleQuery": "Parameters",
   "moduleQueryEmpty": "No parameters",
   "moduleNoteLabel": "Note (kept when switching tabs)",
-  "moduleMarkDirty": "Has unsaved changes"
+  "moduleMarkDirty": "Has unsaved changes",
+
+  "cockpitTitle": "Cockpit",
+  "cockpitPlaceholder": "The dashboard will take shape here as modules are added.",
+
+  "favorites": "Favorites",
+  "addFavorite": "Add to favorites",
+  "removeFavorite": "Remove from favorites",
+  "favoriteUpdateFailed": "Favorites could not be updated.",
+  "favoriteRemoved": "{title} removed from favorites",
+  "undo": "Undo",
+  "recentModules": "Recently used",
+
+  "commandPaletteHint": "Search modules…",
+  "commandPaletteTooltip": "Search modules (Ctrl+K)",
+
+  "discardChangesTitle": "Unsaved changes",
+  "discardChangesMessage": "These tabs have unsaved changes: {tabs}. If you continue, the changes will be lost.",
+  "discardChangesConfirm": "Discard changes",
+  "cancel": "Cancel",
+
+  "shortcutsHelp": "Keyboard shortcuts",
+  "shortcutCloseTab": "Close the active tab",
+  "shortcutPreviousNextTab": "Previous / next tab",
+  "shortcutGoToTab": "Go to tab 1–9",
+  "shortcutCommandPalette": "Search and open a module",
+  "shortcutEscape": "Close dialog or menu"
 }

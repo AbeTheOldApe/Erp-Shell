@@ -56,6 +56,18 @@ abstract final class MenuTree {
       if (node.isLeaf) node else ...leaves(node.children),
   ];
 
+  /// All leaves with the titles of their groups, outermost first.
+  static List<({MenuNode leaf, List<String> path})> leavesWithPath(
+    List<MenuNode> nodes, [
+    List<String> parents = const [],
+  ]) => [
+    for (final node in nodes)
+      if (node.isLeaf)
+        (leaf: node, path: parents)
+      else
+        ...leavesWithPath(node.children, [...parents, node.title]),
+  ];
+
   /// The leaf bound to [moduleKey], if the user can see it.
   static MenuNode? findLeaf(List<MenuNode> nodes, String moduleKey) {
     for (final node in nodes) {

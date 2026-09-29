@@ -6,6 +6,8 @@ import '../core/l10n/generated/app_localizations.dart';
 import '../core/l10n/locale_controller.dart';
 import '../core/network/api_exception.dart';
 import '../core/theme/theme_controller.dart';
+import 'shell_controller.dart';
+import 'shell_dialogs.dart';
 import 'side_menu/menu_providers.dart';
 import 'tabs/open_modules_sheet.dart';
 import 'tabs/tabs_notifier.dart';
@@ -41,9 +43,9 @@ class TopBar extends ConsumerWidget implements PreferredSizeWidget {
       ),
       title: Text(title ?? l10n.appTitle, overflow: TextOverflow.ellipsis),
       actions: [
-        if (compact && onSearchPressed != null)
+        if (onSearchPressed != null)
           IconButton(
-            tooltip: l10n.search,
+            tooltip: l10n.commandPaletteTooltip,
             icon: const Icon(Icons.search),
             onPressed: onSearchPressed,
           ),
@@ -68,6 +70,7 @@ enum _UserAction {
   themeSystem,
   refreshMenu,
   expireSession,
+  shortcutsHelp,
   logout,
 }
 
@@ -151,6 +154,14 @@ class UserMenuButton extends ConsumerWidget {
             ),
           ),
         PopupMenuItem<Object>(
+          value: _UserAction.shortcutsHelp,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.keyboard_outlined),
+            title: Text(l10n.shortcutsHelp),
+          ),
+        ),
+        PopupMenuItem<Object>(
           value: _UserAction.logout,
           child: ListTile(
             contentPadding: EdgeInsets.zero,
@@ -175,6 +186,7 @@ class UserMenuButton extends ConsumerWidget {
     Object value,
   ) async {
     final theme = ref.read(themeModeProvider.notifier);
+    final shell = ShellScope.of(context);
     switch (value) {
       case _LocaleAction(:final locale):
         ref.read(localeProvider.notifier).set(locale);
@@ -191,8 +203,10 @@ class UserMenuButton extends ConsumerWidget {
         // The next API call fails with 401 and the refresh fails too, which
         // opens the "sign in again" dialog.
         await refreshMenu(context, ref, quiet: true);
+      case _UserAction.shortcutsHelp:
+        await showShortcutsHelp(context);
       case _UserAction.logout:
-        await ref.read(sessionProvider.notifier).logout();
+        await shell.logout();
     }
   }
 }

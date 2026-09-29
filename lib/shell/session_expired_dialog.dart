@@ -5,6 +5,7 @@ import '../core/auth/session_controller.dart';
 import '../core/l10n/locale_controller.dart';
 import '../core/network/api_exception.dart';
 import '../core/theme/app_theme.dart';
+import 'shell_dialogs.dart';
 import 'side_menu/menu_providers.dart';
 import 'tabs/tabs_notifier.dart';
 
@@ -54,6 +55,11 @@ class _SessionExpiredDialogState extends ConsumerState<SessionExpiredDialog> {
   }
 
   Future<void> _signOut() async {
+    final dirty = ref.read(tabsProvider).dirtyTitles();
+    if (dirty.isNotEmpty && !await confirmDiscardChanges(context, dirty)) {
+      return;
+    }
+    if (!mounted) return;
     Navigator.of(context).pop();
     await ref.read(sessionProvider.notifier).logout();
   }

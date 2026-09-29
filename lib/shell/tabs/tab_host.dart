@@ -107,9 +107,17 @@ class _ModuleHostState extends ConsumerState<ModuleHost>
   String get moduleKey => widget.tab.moduleKey;
 
   @override
-  ModulePermissions get permissions =>
-      MenuTree.findLeaf(ref.read(menuNodesProvider), moduleKey)?.permissions ??
-      ModulePermissions.none;
+  ModulePermissions get permissions {
+    // The Cockpit is not in the menu; its permission model is decided later.
+    if (ref.read(moduleRegistryProvider)[moduleKey]?.home ?? false) {
+      return const ModulePermissions(canView: true);
+    }
+    return MenuTree.findLeaf(
+          ref.read(menuNodesProvider),
+          moduleKey,
+        )?.permissions ??
+        ModulePermissions.none;
+  }
 
   @override
   Map<String, String> get query => widget.tab.query;

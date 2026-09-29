@@ -49,6 +49,16 @@ class SessionController extends Notifier<SessionState> {
 
   @override
   SessionState build() {
+    // Signing out in one browser tab signs out the others too.
+    final subscription = ref
+        .read(localStoreProvider)
+        .externalChanges
+        .where((key) => key == StorageKeys.logoutSignal)
+        .listen((_) {
+          if (state.isSignedIn) _signOutLocally();
+        });
+    ref.onDispose(subscription.cancel);
+
     final stored = _store.read(StorageKeys.authTokens);
     if (stored == null) return const SessionState.signedOut();
     try {
@@ -69,8 +79,13 @@ class SessionController extends Notifier<SessionState> {
 
   Future<void> logout() async {
     final session = state.session;
-    _store.remove(StorageKeys.authTokens);
-    state = const SessionState.signedOut();
+    _signOutLocally();
+    ref
+        .read(localStoreProvider)
+        .write(
+          StorageKeys.logoutSignal,
+          DateTime.now().microsecondsSinceEpoch.toString(),
+        );
     if (session != null) {
       try {
         await _repository.logout(session);
@@ -121,6 +136,14 @@ class SessionController extends Notifier<SessionState> {
       if (state.session != null) state = SessionState.expired(session);
       return false;
     }
+  }
+
+  /// Forgets the session of this browser tab (tokens and saved tabs).
+  void _signOutLocally() {
+    final userId = state.user?.id;
+    _store.remove(StorageKeys.authTokens);
+    if (userId != null) _store.remove(StorageKeys.tabs(userId));
+    state = const SessionState.signedOut();
   }
 
   void _setActive(AuthSession session) {

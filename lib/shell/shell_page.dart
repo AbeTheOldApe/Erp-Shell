@@ -8,16 +8,22 @@ import '../core/router/app_router.dart';
 import '../core/router/routes.dart';
 import '../core/theme/app_theme.dart';
 import '../core/utils/breakpoints.dart';
+import '../core/utils/unload_guard.dart';
 import '../data/menu/menu_tree.dart';
+import '../modules/registry.dart';
+import 'command_palette.dart';
 import 'content_states.dart';
+import 'personalization/recent_modules_controller.dart';
 import 'session_expired_dialog.dart';
 import 'shell_controller.dart';
+import 'shell_dialogs.dart';
 import 'side_menu/menu_providers.dart';
 import 'side_menu/side_menu_panel.dart';
 import 'side_menu/side_menu_rail.dart';
 import 'tabs/shell_tab_bar.dart';
 import 'tabs/tab_host.dart';
 import 'tabs/tabs_notifier.dart';
+import 'tabs/tabs_persistence.dart';
 import 'top_bar.dart';
 
 /// Responsive shell: top bar, side menu, tab bar and content.
@@ -48,7 +54,6 @@ class _ShellPageState extends ConsumerState<ShellPage> {
   final _contentKey = GlobalKey(debugLabel: 'shell-content');
   late final ShellController _controller;
   bool _overlayOpen = false;
-  bool _drawerSearchFocus = false;
   bool _sessionDialogOpen = false;
 
   @override
@@ -58,7 +63,9 @@ class _ShellPageState extends ConsumerState<ShellPage> {
       ref: ref,
       router: ref.read(routerProvider),
       tabLimit: () => Breakpoints.tabLimit(Breakpoints.of(context)),
+      homeTitle: () => context.l10n.cockpitTitle,
       onTabLimitReached: _showTabLimitWarning,
+      confirmDiscard: (titles) => confirmDiscardChanges(context, titles),
     );
     _syncLater();
     HardwareKeyboard.instance.addHandler(_onKeyEvent);
@@ -122,13 +129,8 @@ class _ShellPageState extends ConsumerState<ShellPage> {
       case WindowSizeClass.medium:
         setState(() => _overlayOpen = !_overlayOpen);
       case WindowSizeClass.compact:
-        _openDrawer(focusSearch: false);
+        _scaffoldKey.currentState?.openDrawer();
     }
-  }
-
-  void _openDrawer({required bool focusSearch}) {
-    setState(() => _drawerSearchFocus = focusSearch);
-    _scaffoldKey.currentState?.openDrawer();
   }
 
   void _closeOverlay() {
@@ -164,6 +166,10 @@ class _ShellPageState extends ConsumerState<ShellPage> {
   Map<ShortcutActivator, bool Function()> get _shortcuts => {
     const SingleActivator(LogicalKeyboardKey.keyW, alt: true): () {
       _controller.closeActiveTab();
+      return true;
+    },
+    const SingleActivator(LogicalKeyboardKey.keyK, control: true): () {
+      showCommandPalette(context, _controller);
       return true;
     },
     const SingleActivator(LogicalKeyboardKey.arrowLeft, alt: true): () {
@@ -204,6 +210,19 @@ class _ShellPageState extends ConsumerState<ShellPage> {
     });
     ref.listen(sessionProvider.select((s) => s.status), (_, status) {
       if (status == SessionStatus.expired) _showSessionExpired();
+    });
+    ref.listen(tabsProvider, (_, tabs) {
+      final userId = ref.read(currentUserIdProvider);
+      // Do not overwrite the saved tabs before they have been restored.
+      if (userId != null && _controller.tabsRestored) {
+        ref.read(tabsPersistenceProvider).save(userId, tabs);
+      }
+      setHasUnsavedChanges(tabs.hasDirtyTabs);
+    });
+    ref.listen(tabsProvider.select((s) => s.activeKey), (_, key) {
+      if (key != null && key != ref.read(homeModuleKeyProvider)) {
+        ref.read(recentModulesProvider.notifier).touch(key);
+      }
     });
 
     final sizeClass = Breakpoints.of(context);
@@ -287,13 +306,12 @@ class _ShellPageState extends ConsumerState<ShellPage> {
         appBar: TopBar(
           compact: compact,
           onMenuPressed: () => _onMenuPressed(sizeClass),
-          onSearchPressed: () => _openDrawer(focusSearch: true),
+          onSearchPressed: () => showCommandPalette(context, _controller),
         ),
         drawer: compact
             ? Drawer(
                 child: SafeArea(
                   child: SideMenuPanel(
-                    autofocusSearch: _drawerSearchFocus,
                     onModuleSelected: () =>
                         _scaffoldKey.currentState?.closeDrawer(),
                   ),

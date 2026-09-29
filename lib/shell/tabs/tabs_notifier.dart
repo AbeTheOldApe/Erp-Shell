@@ -29,6 +29,16 @@ class TabsState {
   }
 
   bool get hasDirtyTabs => tabs.any((t) => t.isDirty);
+
+  /// Titles of the dirty, non-pinned tabs among [keys] (all tabs when null).
+  List<String> dirtyTitles([Iterable<String>? keys]) {
+    final only = keys?.toSet();
+    return [
+      for (final tab in tabs)
+        if (tab.isDirty && (only == null || only.contains(tab.tabKey)))
+          tab.title,
+    ];
+  }
 }
 
 enum TabOpenResult {
@@ -51,13 +61,15 @@ class TabsNotifier extends Notifier<TabsState> {
   }
 
   /// Opens [moduleKey] or switches to its existing tab. A non-empty [query]
-  /// replaces the query of an existing tab.
+  /// replaces the query of an existing tab. With `activate: false` the
+  /// active tab does not change (used when restoring tabs).
   TabOpenResult open({
     required String moduleKey,
     required String title,
     required int limit,
     Map<String, String> query = const {},
     bool pinned = false,
+    bool activate = true,
   }) {
     final existing = state.byKey(moduleKey);
     if (existing != null) {
@@ -71,7 +83,7 @@ class TabsNotifier extends Notifier<TabsState> {
             else
               tab,
         ],
-        activeKey: moduleKey,
+        activeKey: activate ? moduleKey : state.activeKey,
       );
       return TabOpenResult.activated;
     }
@@ -89,7 +101,10 @@ class TabsNotifier extends Notifier<TabsState> {
     } else {
       tabs.add(item);
     }
-    state = TabsState(tabs: tabs, activeKey: moduleKey);
+    state = TabsState(
+      tabs: tabs,
+      activeKey: activate ? moduleKey : state.activeKey,
+    );
     return TabOpenResult.opened;
   }
 

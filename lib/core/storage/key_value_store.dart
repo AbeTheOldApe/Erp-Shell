@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'key_value_store_factory_stub.dart'
@@ -11,6 +13,10 @@ abstract class KeyValueStore {
   String? read(String key);
   void write(String key, String value);
   void remove(String key);
+
+  /// Keys changed by another browser tab (the `storage` event). Only
+  /// `localStorage` reports these; other stores never emit.
+  Stream<String> get externalChanges;
 }
 
 /// In-memory store; used in tests and on platforms without web storage.
@@ -19,6 +25,16 @@ class MemoryKeyValueStore implements KeyValueStore {
     : _values = {...?initial};
 
   final Map<String, String> _values;
+  final StreamController<String> _external = StreamController.broadcast();
+
+  @override
+  Stream<String> get externalChanges => _external.stream;
+
+  /// Simulates another browser tab writing [key] (tests).
+  void simulateExternalWrite(String key, String value) {
+    _values[key] = value;
+    _external.add(key);
+  }
 
   @override
   String? read(String key) => _values[key];

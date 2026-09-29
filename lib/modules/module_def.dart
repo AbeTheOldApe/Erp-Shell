@@ -7,10 +7,15 @@ export '../core/auth/permissions.dart' show ModulePermissions;
 /// Registration of a module: `moduleKey -> builder`.
 @immutable
 class ModuleDef {
-  const ModuleDef(this.key, this.builder);
+  const ModuleDef(this.key, this.builder, {this.home = false});
 
   final String key;
   final Widget Function(ModuleContext ctx) builder;
+
+  /// The home module (Cockpit): opened as the pinned first tab for every
+  /// user, shown at `/`, and not listed in the menu. At most one module may
+  /// set this.
+  final bool home;
 }
 
 /// What the shell provides to a module. Modules never import each other;

@@ -6,6 +6,7 @@ import 'package:erp_shell/core/auth/auth_models.dart';
 import 'package:erp_shell/core/config/app_config.dart';
 import 'package:erp_shell/core/storage/key_value_store.dart';
 import 'package:erp_shell/core/storage/storage_keys.dart';
+import 'package:erp_shell/data/favorites/favorites_repository.dart';
 import 'package:erp_shell/data/menu/menu_models.dart';
 import 'package:erp_shell/data/menu/menu_repository.dart';
 import 'package:erp_shell/data/mock/mock_backend.dart';
@@ -27,6 +28,25 @@ class FakeMenuRepository implements MenuRepository {
   }
 }
 
+/// In-memory favorites API.
+class FakeFavoritesRepository implements FavoritesRepository {
+  FakeFavoritesRepository([List<String>? initial]) : favorites = [...?initial];
+
+  final List<String> favorites;
+
+  @override
+  Future<List<String>> fetchFavorites() async => [...favorites];
+
+  @override
+  Future<void> addFavorite(String moduleKey) async {
+    if (!favorites.contains(moduleKey)) favorites.add(moduleKey);
+  }
+
+  @override
+  Future<void> removeFavorite(String moduleKey) async =>
+      favorites.remove(moduleKey);
+}
+
 /// Sets the logical window size for the test.
 void setWindowSize(WidgetTester tester, Size size) {
   tester.view
@@ -44,13 +64,16 @@ Future<void> pumpApp(
   String? username = 'yonetici',
   Size size = const Size(1400, 900),
   bool useMockMenu = false,
+  MemoryKeyValueStore? sessionStore,
+  MemoryKeyValueStore? localStore,
+  FavoritesRepository? favorites,
 }) async {
   setWindowSize(tester, size);
   final backend = MockBackend(
     minLatency: Duration.zero,
     maxLatency: Duration.zero,
   );
-  final session = MemoryKeyValueStore();
+  final session = sessionStore ?? MemoryKeyValueStore();
   if (username != null && useMockMenu) {
     session.write(
       StorageKeys.authTokens,
@@ -61,7 +84,8 @@ Future<void> pumpApp(
         ).toJson(),
       ),
     );
-  } else if (username != null) {
+  } else if (username != null &&
+      session.read(StorageKeys.authTokens) == null) {
     final user = MockBackend.users[username]!;
     session.write(
       StorageKeys.authTokens,
@@ -86,13 +110,19 @@ Future<void> pumpApp(
         appConfigProvider.overrideWithValue(
           const AppConfig(useMock: true, apiBaseUrl: '/api'),
         ),
-        localStoreProvider.overrideWithValue(MemoryKeyValueStore()),
+        localStoreProvider.overrideWithValue(
+          localStore ?? MemoryKeyValueStore(),
+        ),
         sessionStoreProvider.overrideWithValue(session),
         mockBackendProvider.overrideWithValue(backend),
-        if (username != null && !useMockMenu)
+        if (username != null && !useMockMenu) ...[
           menuRepositoryProvider.overrideWithValue(
             FakeMenuRepository(username),
           ),
+          favoritesRepositoryProvider.overrideWithValue(
+            favorites ?? FakeFavoritesRepository(),
+          ),
+        ],
       ],
       child: const App(),
     ),

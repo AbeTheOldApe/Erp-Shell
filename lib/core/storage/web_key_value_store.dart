@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
@@ -26,6 +27,34 @@ class WebKeyValueStore implements KeyValueStore {
 
   final JSObject? _storage;
   final MemoryKeyValueStore _fallback = MemoryKeyValueStore();
+  StreamController<String>? _external;
+
+  /// The browser fires `storage` on the *other* tabs of the same origin when
+  /// a tab writes to `localStorage`.
+  @override
+  Stream<String> get externalChanges {
+    final existing = _external;
+    if (existing != null) return existing.stream;
+    final controller = StreamController<String>.broadcast();
+    _external = controller;
+    final storage = _storage;
+    if (storage != null) {
+      void onStorage(JSObject event) {
+        final area = event.getProperty<JSAny?>('storageArea'.toJS);
+        final key = event.getProperty<JSString?>('key'.toJS)?.toDart;
+        if (key != null && area.strictEquals(storage).toDart) {
+          controller.add(key);
+        }
+      }
+
+      globalContext.callMethod<JSAny?>(
+        'addEventListener'.toJS,
+        'storage'.toJS,
+        onStorage.toJS,
+      );
+    }
+    return controller.stream;
+  }
 
   @override
   String? read(String key) {
