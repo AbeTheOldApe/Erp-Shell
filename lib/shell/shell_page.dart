@@ -61,6 +61,29 @@ class _ShellPageState extends ConsumerState<ShellPage> {
       onTabLimitReached: _showTabLimitWarning,
     );
     _syncLater();
+    HardwareKeyboard.instance.addHandler(_onKeyEvent);
+  }
+
+  @override
+  void dispose() {
+    HardwareKeyboard.instance.removeHandler(_onKeyEvent);
+    super.dispose();
+  }
+
+  /// Shell shortcuts are handled globally rather than through the focus
+  /// tree: after a focused field is removed (e.g. its tab goes to the
+  /// background) focus falls back to the route scope, above this widget,
+  /// and a `CallbackShortcuts` here would no longer receive key events.
+  bool _onKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent || !mounted) return false;
+    // Dialogs, menus and sheets above the shell handle their own keys.
+    if (!ModalRoute.isCurrentOf(context)!) return false;
+    for (final MapEntry(key: activator, value: action) in _shortcuts.entries) {
+      if (activator.accepts(event, HardwareKeyboard.instance)) {
+        return action();
+      }
+    }
+    return false;
   }
 
   @override
@@ -112,12 +135,16 @@ class _ShellPageState extends ConsumerState<ShellPage> {
     if (_overlayOpen) setState(() => _overlayOpen = false);
   }
 
-  void _onEscape() {
+  bool _onEscape() {
     if (_overlayOpen) {
       _closeOverlay();
-    } else if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
-      _scaffoldKey.currentState?.closeDrawer();
+      return true;
     }
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      _scaffoldKey.currentState?.closeDrawer();
+      return true;
+    }
+    return false;
   }
 
   /// What the content area shows when no tab is active.
@@ -132,13 +159,21 @@ class _ShellPageState extends ConsumerState<ShellPage> {
     };
   }
 
-  Map<ShortcutActivator, VoidCallback> get _shortcuts => {
-    const SingleActivator(LogicalKeyboardKey.keyW, alt: true):
-        _controller.closeActiveTab,
-    const SingleActivator(LogicalKeyboardKey.arrowLeft, alt: true): () =>
-        _controller.activateNeighbour(-1),
-    const SingleActivator(LogicalKeyboardKey.arrowRight, alt: true): () =>
-        _controller.activateNeighbour(1),
+  /// Keyboard shortcuts; each action returns whether it handled the key
+  /// (a handled key is not passed on to the browser).
+  Map<ShortcutActivator, bool Function()> get _shortcuts => {
+    const SingleActivator(LogicalKeyboardKey.keyW, alt: true): () {
+      _controller.closeActiveTab();
+      return true;
+    },
+    const SingleActivator(LogicalKeyboardKey.arrowLeft, alt: true): () {
+      _controller.activateNeighbour(-1);
+      return true;
+    },
+    const SingleActivator(LogicalKeyboardKey.arrowRight, alt: true): () {
+      _controller.activateNeighbour(1);
+      return true;
+    },
     for (final (index, key) in const [
       LogicalKeyboardKey.digit1,
       LogicalKeyboardKey.digit2,
@@ -150,7 +185,10 @@ class _ShellPageState extends ConsumerState<ShellPage> {
       LogicalKeyboardKey.digit8,
       LogicalKeyboardKey.digit9,
     ].indexed)
-      SingleActivator(key, alt: true): () => _controller.activateIndex(index),
+      SingleActivator(key, alt: true): () {
+        _controller.activateIndex(index);
+        return true;
+      },
     const SingleActivator(LogicalKeyboardKey.escape): _onEscape,
   };
 
@@ -244,37 +282,31 @@ class _ShellPageState extends ConsumerState<ShellPage> {
 
     return ShellScope(
       controller: _controller,
-      child: CallbackShortcuts(
-        bindings: _shortcuts,
-        child: Focus(
-          autofocus: true,
-          child: Scaffold(
-            key: _scaffoldKey,
-            appBar: TopBar(
-              compact: compact,
-              onMenuPressed: () => _onMenuPressed(sizeClass),
-              onSearchPressed: () => _openDrawer(focusSearch: true),
-            ),
-            drawer: compact
-                ? Drawer(
-                    child: SafeArea(
-                      child: SideMenuPanel(
-                        autofocusSearch: _drawerSearchFocus,
-                        onModuleSelected: () =>
-                            _scaffoldKey.currentState?.closeDrawer(),
-                      ),
-                    ),
-                  )
-                : null,
-            body: Stack(
-              fit: StackFit.expand,
-              children: [
-                // The nested router navigator must stay mounted.
-                Offstage(child: widget.child),
-                Positioned.fill(child: body),
-              ],
-            ),
-          ),
+      child: Scaffold(
+        key: _scaffoldKey,
+        appBar: TopBar(
+          compact: compact,
+          onMenuPressed: () => _onMenuPressed(sizeClass),
+          onSearchPressed: () => _openDrawer(focusSearch: true),
+        ),
+        drawer: compact
+            ? Drawer(
+                child: SafeArea(
+                  child: SideMenuPanel(
+                    autofocusSearch: _drawerSearchFocus,
+                    onModuleSelected: () =>
+                        _scaffoldKey.currentState?.closeDrawer(),
+                  ),
+                ),
+              )
+            : null,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // The nested router navigator must stay mounted.
+            Offstage(child: widget.child),
+            Positioned.fill(child: body),
+          ],
         ),
       ),
     );

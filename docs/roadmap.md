@@ -42,12 +42,14 @@ Fazları sırayla uygula. Bir fazı bitirince kutuları işaretle. Ayrıntılı 
 3. Tarayıcı penceresi 1400px → 800px → 400px'e küçültülünce yerleşim uygun sınıfa geçer, açık sekmeler kaybolmaz.
 4. "Oturumu doldur" düğmesi tüm sekmelerin yerinde kaldığı bir giriş diyaloğu çıkarır; girişten sonra kullanıcı aynı yerde devam eder.
 
-**Test edilenler (Faz 1):** `flutter test` → 43 test geçti, `flutter analyze` temiz.
+**Test edilenler (Faz 1):** `flutter test` → 44 test geçti, `flutter analyze` temiz.
 - `test/shell/tabs_notifier_test.dart`: aç/tekrar aç (ikinci sekme yok), query güncelleme, sınır (otomatik kapatma yok), kapatma sonrası komşu aktif, `closeOthers/closeRight/closeAll`, `pinned` sıralama ve korunma, yeniden sıralama, dirty/yenile.
 - `test/data/menu_tree_test.dart`: sıralama, boş grup gizleme (her seviyede), 3 seviye sınırı, `turkishFold` ile arama ("iş emri" = "IŞ EMRİ"), 3 mock kullanıcının menüleri (Kabul 1; `depo`'da Sevkiyat rozeti "3").
 - `test/shell/shell_layout_test.dart`: 1400/800/400 px yerleşimleri; aynı modüle iki tıklama tek sekme (Kabul 2); 1400 → 800 → 400 px'te sekmeler ve form metni korunuyor (Kabul 3); kullanıcıya göre menü; menü araması; girişsiz kullanıcı login'e.
 - `test/shell/session_expiry_test.dart`: "Oturum süresini doldur" → 401 → refresh başarısız → diyalog; sekmeler yerinde; girişten sonra form metni duruyor (Kabul 4).
-- Tarayıcıda elle deneme yapılmadı (geri tuşu, kısayollar, flyout, sağ tık menüsü yalnızca kodla doğrulandı).
+- Chrome'da elle denendi (`flutter run -d web-server --release`): giriş yönlendirmesi (`/login?from=`), 3 kullanıcının menüleri, menü araması, rozet, ikon şeridi + flyout (3. seviye), tablet overlay, telefon "açık modüller" sheet'i, sekme çubuğu ve sağ tık menüsü, geri tuşu, "Yetkiniz yok" / "Modül bulunamadı", kısayollar (`Alt+←/→`, `Alt+1..9`, `Alt+W`; tarayıcının Alt+← "geri" işlemi engelleniyor), oturum sona erme akışı, F5 sonrası oturumun korunması; konsolda hata yok. Tablet/telefon genişlikleri iframe ile denendi (pencere boyutlandırılamadı).
+- Tarayıcı denemesinde bulunan hata düzeltildi: kısayollar, odaklı alan arka plandaki sekmeyle birlikte kaldırılınca çalışmıyordu (`CallbackShortcuts` → `HardwareKeyboard` işleyicisi); regresyon testi eklendi.
+- Denenemeyenler: orta tuşla sekme kapatma ve sürükleyerek sıralama (tarayıcı otomasyonu desteklemiyor).
 - Mock menüye 3. seviye örneği ve 7. modül için "Raporlar › Depo Raporları › Stok Raporu" (`rapor-stok`) eklendi.
 
 ## Faz 2: Zenginleştirme

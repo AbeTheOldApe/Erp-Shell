@@ -3,6 +3,7 @@ import 'package:erp_shell/shell/side_menu/side_menu_rail.dart';
 import 'package:erp_shell/shell/tabs/open_modules_sheet.dart';
 import 'package:erp_shell/shell/tabs/shell_tab_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/shell_harness.dart';
@@ -100,6 +101,42 @@ void main() {
       find.descendant(of: sheet, matching: find.text('Siparişler')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('keyboard shortcuts work after focus leaves a closed tab', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    await _openFromPanel(tester, 'Depo', 'Stok Durumu');
+    await _openFromPanel(tester, 'Satış', 'Siparişler');
+    // Focus a field in the active tab, then send that tab to the background
+    // so the focused field is excluded and focus falls back to the route.
+    await tester.enterText(find.byType(TextField).last, 'x');
+    await tester.tap(_tabBarTab('Stok Durumu'));
+    await tester.pumpAndSettle();
+
+    Future<void> altKey(LogicalKeyboardKey key) async {
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.altLeft);
+      await tester.sendKeyEvent(key);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.altLeft);
+      await tester.pumpAndSettle();
+    }
+
+    String title() => tester
+        .widget<Text>(
+          find.descendant(of: find.byType(AppBar), matching: find.byType(Text)).first,
+        )
+        .data!;
+
+    await altKey(LogicalKeyboardKey.digit2);
+    expect(title(), 'Siparişler');
+    await altKey(LogicalKeyboardKey.arrowLeft);
+    expect(title(), 'Stok Durumu');
+    await altKey(LogicalKeyboardKey.arrowRight);
+    expect(title(), 'Siparişler');
+    await altKey(LogicalKeyboardKey.keyW);
+    expect(_tabBarTab('Siparişler'), findsNothing);
+    expect(title(), 'Stok Durumu');
   });
 
   testWidgets('menu differs per user', (tester) async {
