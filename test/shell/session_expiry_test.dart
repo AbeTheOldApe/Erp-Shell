@@ -16,7 +16,7 @@ void main() {
     await tester.tap(find.descendant(of: panel, matching: find.text('Satış')));
     await tester.pumpAndSettle();
     await tester.tap(
-      find.descendant(of: panel, matching: find.text('Siparişler')),
+      find.descendant(of: panel, matching: find.text('Müşteriler')),
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'yarım kalan iş');
@@ -31,7 +31,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byType(ShellTabBar),
-        matching: find.text('Siparişler'),
+        matching: find.text('Müşteriler'),
       ),
       findsOneWidget,
     );

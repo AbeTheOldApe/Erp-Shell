@@ -122,7 +122,7 @@ Mock giriş bilgileri yalnızca demo içindir. Şifre doğrulaması yapılmaz; k
 | Kullanıcı adı | Şifre | Rol | Amaç |
 |---|---|---|---|
 | `yonetici` | `1234` | Yonetici | Tüm menü, tüm yetkiler |
-| `depo` | `1234` | Depo | Depo grubu tam yetkili, Raporlar salt okunur |
+| `depo` | `1234` | Depo | Depo grubu tam yetkili, Raporlar ve Siparişler salt okunur (Faz 3 yetki örneği: "Yeni", "Kaydet", "Sil" görünmez) |
 | `satis` | `1234` | Satis | Satış grubu tam yetkili (silme yok) |
 
 Mock `Yonetici` menüsü (diğerleri bunun alt kümesidir):
@@ -159,5 +159,56 @@ Mock'un desteklemesi gerekenler:
 | `ui.recent.<userId>` | localStorage | Son kullanılan 5 modül, en yenisi başta (Faz 2) |
 | `auth.logoutSignal` | localStorage | Çıkışta yazılır; diğer tarayıcı sekmeleri `storage` olayıyla çıkış yapar (Faz 2) |
 | `mock.favorites.<username>` | localStorage | Yalnızca mock: favori API'sinin "sunucu" tarafı |
-| `ui.grid.<moduleKey>.<gridId>` | localStorage | Sütun sırası/genişlik/görünürlük (Faz 3) |
+| `ui.grid.<userId>.<moduleKey>.<gridId>` | localStorage | Sütun sırası/genişlik/görünürlük (Faz 3). `ui-behaviors.md` "kullanıcı bazında" dediği için anahtara `userId` eklendi |
 | `auth.tokens` | sessionStorage | Token'lar (gerçek API fazında yeniden değerlendirilecek) |
+
+## 5. Liste sorgu sözleşmesi ve Siparişler API'si (Faz 3)
+
+Tüm listeler (`AppDataGrid`) sunucu taraflı sayfalama/sıralama/filtre için aynı **JSON gövdeli POST** biçimini kullanır:
+
+```json
+// POST /<kaynak>/query
+{
+  "page": 1,                // 1'den başlar
+  "pageSize": 25,
+  "sort": [{ "field": "tarih", "dir": "desc" }],          // dir: asc | desc
+  "filters": [
+    { "field": "durum",   "op": "eq",       "value": "Acik" },
+    { "field": "musteri", "op": "contains", "value": "ahmet" },
+    { "field": "tarih",   "op": "gte",      "value": "2026-01-01" },
+    { "field": "tarih",   "op": "lte",      "value": "2026-01-31" }
+  ]
+}
+// yanıt
+{ "items": [ ... ], "total": 312 }   // total: filtreye uyan tüm kayıt sayısı
+```
+
+Operatörler: `eq`, `contains` (Türkçe büyük/küçük harf ve `İ/ı` duyarsız), `gte`, `lte` (tarih `yyyy-MM-dd`, sayı). Filtreler AND ile birleşir. CSV dışa aktarma aynı sorguyu büyük `pageSize` ile gönderir.
+
+### Siparişler
+
+| Metot | Yol | Amaç |
+|---|---|---|
+| POST | `/siparisler/query` | Liste (yukarıdaki sözleşme). Alanlar: `no`, `musteri`, `tarih`, `durum`, `tutar` |
+| GET | `/siparisler/{id}` | Başlık + kalemler; yoksa `404` |
+| POST | `/siparisler` | Yeni sipariş; `id` ve `no` sunucuda verilir |
+| PUT | `/siparisler/{id}` | Güncelle |
+| DELETE | `/siparisler/{id}` | Sil |
+
+```json
+// Liste satırı
+{ "id": 5, "no": "SP-1005", "musteri": "Ege Tekstil", "tarih": "2026-09-26",
+  "durum": "Onaylandi", "tutar": 2501.0 }
+
+// Detay (GET/POST/PUT gövdesi)
+{
+  "id": 5, "no": "SP-1005", "musteri": "Ege Tekstil", "tarih": "2026-09-26",
+  "durum": "Onaylandi",                 // Acik | Onaylandi | SevkEdildi | Iptal
+  "teslimAdresi": "Bornova / İzmir", "not": "",
+  "kalemler": [ { "urun": "Rulman 6204", "miktar": 2, "birimFiyat": 1250.5 } ]
+}
+```
+
+`tutar` sunucuda kalemlerden hesaplanır (`miktar × birimFiyat` toplamı). Yetki: listeleme `canView`, yeni `canAdd`, güncelleme `canEdit`, silme `canDelete`; API her istekte kendisi doğrular.
+
+Mock: 137 sipariş deterministik üretilir (`MockSiparisRepository`), değişiklikler sayfa oturumu boyunca bellekte tutulur.

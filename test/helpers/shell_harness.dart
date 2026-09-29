@@ -10,6 +10,7 @@ import 'package:erp_shell/data/favorites/favorites_repository.dart';
 import 'package:erp_shell/data/menu/menu_models.dart';
 import 'package:erp_shell/data/menu/menu_repository.dart';
 import 'package:erp_shell/data/mock/mock_backend.dart';
+import 'package:erp_shell/modules/registry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -47,6 +48,17 @@ class FakeFavoritesRepository implements FavoritesRepository {
       favorites.remove(moduleKey);
 }
 
+/// Loads the code of every deferred module in the real zone. On the VM a
+/// `loadLibrary()` first called inside one test's fake-async zone never
+/// completes in later tests; once loaded, later calls complete at once.
+Future<void> preloadDeferredModules(WidgetTester tester) =>
+    tester.runAsync(
+      () => Future.wait([
+        for (final def in moduleRegistry.values)
+          if (def.load != null) def.load!(),
+      ]),
+    );
+
 /// Sets the logical window size for the test.
 void setWindowSize(WidgetTester tester, Size size) {
   tester.view
@@ -69,37 +81,22 @@ Future<void> pumpApp(
   FavoritesRepository? favorites,
 }) async {
   setWindowSize(tester, size);
+  await preloadDeferredModules(tester);
   final backend = MockBackend(
     minLatency: Duration.zero,
     maxLatency: Duration.zero,
   );
   final session = sessionStore ?? MemoryKeyValueStore();
-  if (username != null && useMockMenu) {
+  // Real mock tokens, so module APIs (e.g. orders) accept them. A session
+  // kept from an earlier pump (reload tests) is reused.
+  if (username != null &&
+      (useMockMenu || session.read(StorageKeys.authTokens) == null)) {
     session.write(
       StorageKeys.authTokens,
       jsonEncode(
         AuthSession.fromLoginResponse(
           backend.login(username),
           username: username,
-        ).toJson(),
-      ),
-    );
-  } else if (username != null &&
-      session.read(StorageKeys.authTokens) == null) {
-    final user = MockBackend.users[username]!;
-    session.write(
-      StorageKeys.authTokens,
-      jsonEncode(
-        AuthSession(
-          accessToken: 'test',
-          refreshToken: 'test',
-          expiresAt: DateTime(2100),
-          user: AppUser(
-            id: user.id,
-            username: username,
-            displayName: user.displayName,
-            roles: user.roles,
-          ),
         ).toJson(),
       ),
     );

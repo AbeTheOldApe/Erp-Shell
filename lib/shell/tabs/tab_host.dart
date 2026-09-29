@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/menu/menu_tree.dart';
 import '../../modules/module_def.dart';
 import '../../modules/registry.dart';
+import '../../shared/states/error_state.dart';
+import '../../shared/states/skeleton_loader.dart';
 import '../content_states.dart';
 import '../shell_controller.dart';
 import '../side_menu/menu_providers.dart';
@@ -87,6 +89,18 @@ class _ModuleHostState extends ConsumerState<ModuleHost>
   final StreamController<Map<String, String>> _queryChanges =
       StreamController.broadcast();
 
+  /// Completes when a deferred module's code has been loaded.
+  Future<void>? _codeLoaded;
+
+  @override
+  void initState() {
+    super.initState();
+    _codeLoaded = _loadCode();
+  }
+
+  Future<void>? _loadCode() =>
+      ref.read(moduleRegistryProvider)[moduleKey]?.load?.call();
+
   @override
   void didUpdateWidget(ModuleHost oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -105,6 +119,14 @@ class _ModuleHostState extends ConsumerState<ModuleHost>
 
   @override
   String get moduleKey => widget.tab.moduleKey;
+
+  @override
+  String get title => widget.tab.title;
+
+  @override
+  void setQuery(Map<String, String> query) {
+    if (mounted) ShellScope.of(context).setModuleQuery(moduleKey, query);
+  }
 
   @override
   ModulePermissions get permissions {
@@ -146,6 +168,21 @@ class _ModuleHostState extends ConsumerState<ModuleHost>
     ref.watch(menuNodesProvider);
     final def = ref.watch(moduleRegistryProvider)[moduleKey];
     if (def == null) return ModuleNotFoundView(moduleKey: moduleKey);
-    return def.builder(this);
+    final codeLoaded = _codeLoaded;
+    if (codeLoaded == null) return def.builder(this);
+    return FutureBuilder<void>(
+      future: codeLoaded,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const SkeletonLoader();
+        }
+        if (snapshot.hasError) {
+          return ErrorState(
+            onRetry: () => setState(() => _codeLoaded = _loadCode()),
+          );
+        }
+        return def.builder(this);
+      },
+    );
   }
 }

@@ -182,6 +182,12 @@ class ShellController {
 
   void setDirty(String key, bool value) => _tabs.setDirty(key, value);
 
+  /// The module changed its inner page; mirror it in the URL.
+  void setModuleQuery(String key, Map<String, String> query) {
+    _tabs.setQuery(key, query);
+    if (_state.activeKey == key) _goToActive();
+  }
+
   /// Applies a URL change that did not come from the shell (browser back /
   /// forward, typed or shared link, reload). `/` shows the Cockpit.
   void syncFromLocation(Uri uri) {
@@ -204,6 +210,8 @@ class ShellController {
       title: _titleOf(key),
       query: uri.queryParameters,
       limit: _tabLimit(),
+      // Browser back from `?id=7` to no query must reach the module.
+      replaceQuery: true,
     );
     if (result == TabOpenResult.limitReached) {
       _onTabLimitReached();

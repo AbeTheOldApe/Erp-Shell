@@ -119,13 +119,13 @@ void main() {
     final session = MemoryKeyValueStore();
     await pumpApp(tester, sessionStore: session);
     await _open(tester, 'Depo', 'Stok Durumu');
-    await _open(tester, 'Satış', 'Siparişler');
+    await _open(tester, 'Satış', 'Müşteriler');
 
     await _reload(tester);
     await pumpApp(tester, sessionStore: session);
     expect(_tab('Cockpit'), findsOneWidget);
     expect(_tab('Stok Durumu'), findsOneWidget);
-    expect(_tab('Siparişler'), findsOneWidget);
+    expect(_tab('Müşteriler'), findsOneWidget);
   });
 
   testWidgets('favorites: star, section, kept across sessions', (
@@ -164,11 +164,11 @@ void main() {
   ) async {
     await pumpApp(tester);
     await _open(tester, 'Depo', 'Stok Durumu');
-    await _open(tester, 'Satış', 'Siparişler');
+    await _open(tester, 'Satış', 'Müşteriler');
     await _key(tester, LogicalKeyboardKey.keyK, modifier: LogicalKeyboardKey.controlLeft);
     final palette = find.byType(CommandPalette);
     expect(find.descendant(of: palette, matching: find.text('Stok Durumu')), findsOneWidget);
-    expect(find.descendant(of: palette, matching: find.text('Siparişler')), findsNothing);
+    expect(find.descendant(of: palette, matching: find.text('Müşteriler')), findsNothing);
   });
 
   testWidgets('recent modules are kept across sessions and shown in the '
@@ -176,14 +176,14 @@ void main() {
     final local = MemoryKeyValueStore();
     await pumpApp(tester, localStore: local);
     await _open(tester, 'Depo', 'Stok Durumu');
-    await _open(tester, 'Satış', 'Siparişler');
+    await _open(tester, 'Satış', 'Müşteriler');
 
     await _reload(tester);
     await pumpApp(tester, localStore: local);
     await _key(tester, LogicalKeyboardKey.keyK, modifier: LogicalKeyboardKey.controlLeft);
     final palette = find.byType(CommandPalette);
     expect(find.descendant(of: palette, matching: find.text('Son kullanılanlar')), findsOneWidget);
-    expect(find.descendant(of: palette, matching: find.text('Siparişler')), findsOneWidget);
+    expect(find.descendant(of: palette, matching: find.text('Müşteriler')), findsOneWidget);
     expect(find.descendant(of: palette, matching: find.text('Stok Durumu')), findsOneWidget);
   });
 
@@ -208,7 +208,7 @@ void main() {
 
   testWidgets('closing a dirty tab asks first', (tester) async {
     await pumpApp(tester);
-    await _open(tester, 'Satış', 'Siparişler');
+    await _open(tester, 'Satış', 'Müşteriler');
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
 
@@ -216,12 +216,12 @@ void main() {
     expect(find.text('Kaydedilmemiş değişiklikler'), findsOneWidget);
     await tester.tap(find.text('Vazgeç'));
     await tester.pumpAndSettle();
-    expect(_tab('Siparişler'), findsOneWidget);
+    expect(_tab('Müşteriler'), findsOneWidget);
 
     await _key(tester, LogicalKeyboardKey.keyW, modifier: LogicalKeyboardKey.altLeft);
     await tester.tap(find.text('Değişiklikleri at'));
     await tester.pumpAndSettle();
-    expect(_tab('Siparişler'), findsNothing);
+    expect(_tab('Müşteriler'), findsNothing);
   });
 
   testWidgets('sign-out in another browser tab signs this one out', (

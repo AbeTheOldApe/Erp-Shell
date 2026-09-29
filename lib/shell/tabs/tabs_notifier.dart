@@ -61,7 +61,8 @@ class TabsNotifier extends Notifier<TabsState> {
   }
 
   /// Opens [moduleKey] or switches to its existing tab. A non-empty [query]
-  /// replaces the query of an existing tab. With `activate: false` the
+  /// replaces the query of an existing tab; with [replaceQuery] (URL
+  /// changes) an empty query replaces it too. With `activate: false` the
   /// active tab does not change (used when restoring tabs).
   TabOpenResult open({
     required String moduleKey,
@@ -70,11 +71,13 @@ class TabsNotifier extends Notifier<TabsState> {
     Map<String, String> query = const {},
     bool pinned = false,
     bool activate = true,
+    bool replaceQuery = false,
   }) {
     final existing = state.byKey(moduleKey);
     if (existing != null) {
       final queryChanged =
-          query.isNotEmpty && !mapEquals(query, existing.query);
+          (replaceQuery || query.isNotEmpty) &&
+          !mapEquals(query, existing.query);
       state = TabsState(
         tabs: [
           for (final tab in state.tabs)
@@ -171,6 +174,13 @@ class TabsNotifier extends Notifier<TabsState> {
   void setDirty(String key, bool value) {
     if (state.byKey(key)?.isDirty == value) return;
     _update(key, (tab) => tab.copyWith(isDirty: value));
+  }
+
+  /// Records the module's own query change (no [TabItem.queryVersion] bump,
+  /// so the module is not notified of its own change).
+  void setQuery(String key, Map<String, String> query) {
+    if (mapEquals(state.byKey(key)?.query, query)) return;
+    _update(key, (tab) => tab.copyWith(query: query));
   }
 
   /// "Yenile": the module is rebuilt from scratch.

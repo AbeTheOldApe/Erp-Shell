@@ -136,9 +136,20 @@ void main() {
       expect(keysOf('yonetici'), hasLength(7));
     });
 
-    test('depo sees Depo and read-only Raporlar, badge on Sevkiyat', () {
+    test('depo sees Depo, read-only Siparişler and Raporlar, badge on '
+        'Sevkiyat', () {
       final menu = _loadMock('depo');
-      expect(keysOf('depo'), ['stok', 'sevkiyat', 'rapor-satis', 'rapor-stok']);
+      expect(keysOf('depo'), [
+        'siparis',
+        'stok',
+        'sevkiyat',
+        'rapor-satis',
+        'rapor-stok',
+      ]);
+      expect(
+        MenuTree.findLeaf(menu, 'siparis')!.permissions,
+        const ModulePermissions(canView: true),
+      );
       expect(MenuTree.findLeaf(menu, 'sevkiyat')!.badge, '3');
       expect(
         MenuTree.findLeaf(menu, 'rapor-satis')!.permissions,

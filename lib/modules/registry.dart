@@ -1,26 +1,56 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'cockpit/cockpit_module.dart';
-import 'kullanici/kullanici_module.dart';
+import 'kullanici/kullanici_module.dart' deferred as kullanici;
 import 'module_def.dart';
-import 'musteri/musteri_module.dart';
-import 'rapor_satis/rapor_satis_module.dart';
-import 'rapor_stok/rapor_stok_module.dart';
-import 'sevkiyat/sevkiyat_module.dart';
-import 'siparis/siparis_module.dart';
-import 'stok/stok_module.dart';
+import 'musteri/musteri_module.dart' deferred as musteri;
+import 'rapor_satis/rapor_satis_module.dart' deferred as rapor_satis;
+import 'rapor_stok/rapor_stok_module.dart' deferred as rapor_stok;
+import 'sevkiyat/sevkiyat_module.dart' deferred as sevkiyat;
+import 'siparis/siparis_module.dart' deferred as siparis;
+import 'stok/stok_module.dart' deferred as stok;
 
-/// All modules known to the shell. Adding a module is one line here.
-const Map<String, ModuleDef> moduleRegistry = {
-  'cockpit': ModuleDef('cockpit', CockpitModule.new, home: true),
-  'siparis': ModuleDef('siparis', SiparisModule.new),
-  'musteri': ModuleDef('musteri', MusteriModule.new),
-  'stok': ModuleDef('stok', StokModule.new),
-  'sevkiyat': ModuleDef('sevkiyat', SevkiyatModule.new),
-  'rapor-satis': ModuleDef('rapor-satis', RaporSatisModule.new),
-  'rapor-stok': ModuleDef('rapor-stok', RaporStokModule.new),
-  'kullanici': ModuleDef('kullanici', KullaniciModule.new),
-};
+/// All modules known to the shell. Adding a module is one entry here.
+/// Business modules are deferred: their code is downloaded the first time
+/// they are opened. The Cockpit is the landing page, so it is not.
+final Map<String, ModuleDef> moduleRegistry = Map.unmodifiable({
+  'cockpit': const ModuleDef('cockpit', CockpitModule.new, home: true),
+  'siparis': ModuleDef(
+    'siparis',
+    (ctx) => siparis.SiparisModule(ctx),
+    load: siparis.loadLibrary,
+  ),
+  'musteri': ModuleDef(
+    'musteri',
+    (ctx) => musteri.MusteriModule(ctx),
+    load: musteri.loadLibrary,
+  ),
+  'stok': ModuleDef(
+    'stok',
+    (ctx) => stok.StokModule(ctx),
+    load: stok.loadLibrary,
+  ),
+  'sevkiyat': ModuleDef(
+    'sevkiyat',
+    (ctx) => sevkiyat.SevkiyatModule(ctx),
+    load: sevkiyat.loadLibrary,
+  ),
+  'rapor-satis': ModuleDef(
+    'rapor-satis',
+    (ctx) => rapor_satis.RaporSatisModule(ctx),
+    load: rapor_satis.loadLibrary,
+  ),
+  'rapor-stok': ModuleDef(
+    'rapor-stok',
+    (ctx) => rapor_stok.RaporStokModule(ctx),
+    load: rapor_stok.loadLibrary,
+  ),
+  'kullanici': ModuleDef(
+    'kullanici',
+    (ctx) => kullanici.KullaniciModule(ctx),
+    load: kullanici.loadLibrary,
+  ),
+});
 
 /// Registry lookup; overridable in tests.
 final moduleRegistryProvider = Provider<Map<String, ModuleDef>>(

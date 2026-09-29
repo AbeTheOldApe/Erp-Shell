@@ -77,9 +77,9 @@ void main() {
 
   testWidgets('clicking the same module twice opens one tab', (tester) async {
     await pumpApp(tester);
-    await _openFromPanel(tester, 'Satış', 'Siparişler');
-    await _openFromPanel(tester, 'Satış', 'Siparişler');
-    expect(_tabBarTab('Siparişler'), findsOneWidget);
+    await _openFromPanel(tester, 'Satış', 'Müşteriler');
+    await _openFromPanel(tester, 'Satış', 'Müşteriler');
+    expect(_tabBarTab('Müşteriler'), findsOneWidget);
   });
 
   testWidgets('tabs and their state survive 1400 → 800 → 400 px', (
@@ -87,7 +87,7 @@ void main() {
   ) async {
     await pumpApp(tester, size: const Size(1400, 900));
     await _openFromPanel(tester, 'Depo', 'Stok Durumu');
-    await _openFromPanel(tester, 'Satış', 'Siparişler');
+    await _openFromPanel(tester, 'Satış', 'Müşteriler');
 
     await tester.enterText(find.byType(TextField).last, 'taslak not');
     await tester.pumpAndSettle();
@@ -96,7 +96,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(SideMenuRail), findsOneWidget);
     expect(_tabBarTab('Stok Durumu'), findsOneWidget);
-    expect(_tabBarTab('Siparişler'), findsOneWidget);
+    expect(_tabBarTab('Müşteriler'), findsOneWidget);
     expect(find.text('taslak not'), findsOneWidget);
 
     setWindowSize(tester, const Size(400, 800));
@@ -112,7 +112,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.descendant(of: sheet, matching: find.text('Siparişler')),
+      find.descendant(of: sheet, matching: find.text('Müşteriler')),
       findsOneWidget,
     );
   });
@@ -122,7 +122,7 @@ void main() {
   ) async {
     await pumpApp(tester);
     await _openFromPanel(tester, 'Depo', 'Stok Durumu');
-    await _openFromPanel(tester, 'Satış', 'Siparişler');
+    await _openFromPanel(tester, 'Satış', 'Müşteriler');
     // Focus a field in the active tab, then send that tab to the background
     // so the focused field is excluded and focus falls back to the route.
     await tester.enterText(find.byType(TextField).last, 'x');
@@ -142,15 +142,15 @@ void main() {
         )
         .data!;
 
-    // Tabs: Cockpit (pinned), Stok Durumu, Siparişler.
+    // Tabs: Cockpit (pinned), Stok Durumu, Müşteriler.
     await altKey(LogicalKeyboardKey.digit3);
-    expect(title(), 'Siparişler');
+    expect(title(), 'Müşteriler');
     await altKey(LogicalKeyboardKey.arrowLeft);
     expect(title(), 'Stok Durumu');
     await altKey(LogicalKeyboardKey.arrowRight);
-    expect(title(), 'Siparişler');
+    expect(title(), 'Müşteriler');
     await altKey(LogicalKeyboardKey.keyW);
-    expect(_tabBarTab('Siparişler'), findsNothing);
+    expect(_tabBarTab('Müşteriler'), findsNothing);
     expect(title(), 'Stok Durumu');
   });
 

@@ -2,33 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../core/l10n/locale_controller.dart';
 import '../core/theme/app_theme.dart';
+import '../shared/dialogs/confirm_dialog.dart';
 
 /// Asks whether unsaved changes in [dirtyTitles] may be discarded.
 Future<bool> confirmDiscardChanges(
   BuildContext context,
   List<String> dirtyTitles,
-) async {
+) {
   final l10n = context.l10n;
-  final result = await showDialog<bool>(
+  return showConfirmDialog(
     context: context,
-    builder: (context) => AlertDialog(
-      icon: const Icon(Icons.warning_amber_outlined),
-      title: Text(l10n.discardChangesTitle),
-      content: Text(l10n.discardChangesMessage(dirtyTitles.join(', '))),
-      actions: [
-        TextButton(
-          autofocus: true,
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(l10n.cancel),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: Text(l10n.discardChangesConfirm),
-        ),
-      ],
-    ),
+    title: l10n.discardChangesTitle,
+    message: l10n.discardChangesMessage(dirtyTitles.join(', ')),
+    confirmLabel: l10n.discardChangesConfirm,
   );
-  return result ?? false;
 }
 
 /// Lists the keyboard shortcuts.

@@ -116,5 +116,88 @@
   "shortcutPreviousNextTab": "Önceki / sonraki sekme",
   "shortcutGoToTab": "1.–9. sekmeye git",
   "shortcutCommandPalette": "Modül ara ve aç",
-  "shortcutEscape": "Diyaloğu veya menüyü kapat"
+  "shortcutEscape": "Diyaloğu veya menüyü kapat",
+  "shortcutSave": "Kaydet (formlarda)",
+
+  "errorTitle": "Bir sorun oluştu",
+  "errorLoadFailed": "Veriler yüklenemedi.",
+  "breadcrumbMore": "Diğer düzeyler",
+  "moreActions": "Diğer işlemler",
+
+  "gridEmptyTitle": "Kayıt bulunamadı",
+  "gridSort": "Sırala",
+  "gridNoSort": "Sıralama yok",
+  "gridRange": "{first}–{last} / {total}",
+  "@gridRange": {
+    "placeholders": {
+      "first": { "type": "String" },
+      "last": { "type": "String" },
+      "total": { "type": "String" }
+    }
+  },
+  "gridPreviousPage": "Önceki sayfa",
+  "gridNextPage": "Sonraki sayfa",
+
+  "filter": "Filtre",
+  "filterWithCount": "Filtre ({count})",
+  "@filterWithCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "filterApply": "Uygula",
+  "filterClear": "Temizle",
+  "filterAll": "Tümü",
+  "filterDateFrom": "{label} (başlangıç)",
+  "@filterDateFrom": {
+    "placeholders": { "label": { "type": "String" } }
+  },
+  "filterDateTo": "{label} (bitiş)",
+  "@filterDateTo": {
+    "placeholders": { "label": { "type": "String" } }
+  },
+
+  "actionNew": "Yeni",
+  "actionSave": "Kaydet",
+  "actionDelete": "Sil",
+  "actionExport": "Dışa aktar",
+  "saved": "Kaydedildi",
+  "deleted": "Silindi",
+  "saveFailed": "Kaydedilemedi. Lütfen tekrar deneyin.",
+  "deleteFailed": "Silinemedi. Lütfen tekrar deneyin.",
+  "exportFailed": "Dışa aktarılamadı.",
+  "deleteConfirmTitle": "Kaydı sil",
+  "deleteConfirmMessage": "{name} kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+  "@deleteConfirmMessage": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "validationRequired": "Bu alan zorunlu",
+  "validationPositive": "0'dan büyük bir sayı girin",
+  "validationNumber": "Geçerli bir sayı girin (ör. 1.234,56)",
+  "recordNotFound": "Kayıt bulunamadı",
+
+  "siparisNo": "Sipariş no",
+  "siparisMusteri": "Müşteri",
+  "siparisTarih": "Tarih",
+  "siparisDurum": "Durum",
+  "siparisTutar": "Tutar",
+  "siparisTeslimAdresi": "Teslim adresi",
+  "siparisNot": "Not",
+  "siparisNew": "Yeni sipariş",
+  "siparisKalemler": "Kalemler",
+  "siparisToplam": "Toplam: {amount}",
+  "@siparisToplam": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "siparisNeedsItem": "En az bir kalem ekleyin",
+  "durumAcik": "Açık",
+  "durumOnaylandi": "Onaylandı",
+  "durumSevkEdildi": "Sevk edildi",
+  "durumIptal": "İptal",
+  "kalemUrun": "Ürün",
+  "kalemMiktar": "Miktar",
+  "kalemBirimFiyat": "Birim fiyat",
+  "kalemTutar": "Tutar",
+  "kalemAdd": "Kalem ekle",
+  "kalemEdit": "Kalemi düzenle",
+  "kalemDelete": "Kalemi sil",
+  "kalemEmpty": "Henüz kalem yok"
 }

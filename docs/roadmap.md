@@ -81,16 +81,34 @@ Fazları sırayla uygula. Bir fazı bitirince kutuları işaretle. Ayrıntılı 
 
 ## Faz 3: Ortak bileşenler ve örnek modül
 
-- [ ] `ResponsiveScaffold`, `ResponsiveForm`, `AdaptiveDialog`
-- [ ] `AppDataGrid` (TrinaGrid sarmalayıcısı): tablo/kart listesi geçişi, sayfalama-sıralama-filtre sözleşmesi, Ctrl+C kopyalama, sütun tercihleri, CSV dışa aktarma
-- [ ] Filtre alanı (satır / bottom sheet)
-- [ ] `EmptyState`, `ErrorState`, `SkeletonLoader`, bildirim standartları, onay diyaloğu
-- [ ] Modül içi breadcrumb bileşeni
-- [ ] `siparis` modülünü liste → detay örneğine dönüştür (grid + breadcrumb + form + `isDirty` + yetkiye göre buton gizleme)
-- [ ] Modüllerin `deferred as` ile tembel yüklenmesi
-- [ ] Widget testleri (grid geçişi, form kolonları)
+- [x] `ResponsiveScaffold`, `ResponsiveForm`, `AdaptiveDialog`
+- [x] `AppDataGrid` (TrinaGrid sarmalayıcısı): tablo/kart listesi geçişi, sayfalama-sıralama-filtre sözleşmesi, Ctrl+C kopyalama, sütun tercihleri, CSV dışa aktarma
+- [x] Filtre alanı (satır / bottom sheet)
+- [x] `EmptyState`, `ErrorState`, `SkeletonLoader`, bildirim standartları, onay diyaloğu
+- [x] Modül içi breadcrumb bileşeni
+- [x] `siparis` modülünü liste → detay örneğine dönüştür (grid + breadcrumb + form + `isDirty` + yetkiye göre buton gizleme)
+- [x] Modüllerin `deferred as` ile tembel yüklenmesi
+- [x] Widget testleri (grid geçişi, form kolonları)
 
 **Kabul:** `siparis` modülü üç ekran sınıfında da kullanılabilir; yetkisiz kullanıcıda ekle/sil butonları görünmez; dirty formda sekme kapatınca uyarı çıkar.
+
+**Kararlar ve uygulama notları (Faz 3):**
+- **Liste sorgu sözleşmesi:** kullanıcı kararıyla JSON gövdeli `POST /<kaynak>/query` (`{page, pageSize, sort[], filters[]}` → `{items, total}`). Ayrıntı ve `Siparişler` API'si `docs/menu-schema.md` §5'te. `GridQuery`/`GridFilter`/`GridSort` bu sözleşmeyi birebir taşır (`toJson`/`fromJson`); `LocalGridDataSource` aynı sözleşmeyi bellekte uygular ve mock repository'lerin temelini oluşturur.
+- **Sipariş detayı:** kullanıcı kararıyla başlık formu + kalemler grid'i (liste ekranıyla aynı sekmede, breadcrumb ile). Kalemler bağımsız bir API çağrısı yapmaz; `AppDataGrid`'in yerel veri kaynağı üzerinde çalışır. `tutar` sunucuda (mock'ta da) kalemlerden hesaplanır.
+- **`depo` kullanıcısı** artık Siparişler'i salt okunur görüyor (yeni Faz 3 yetki örneği): "Yeni", "Kaydet", "Sil" gizli, form salt okunur. `satis` kullanıcısında silme yok.
+- **AppDataGrid ↔ TrinaGrid:** sıralama sunucuya bırakılır (`setSortOnlyEvent(true)`); TrinaGrid yalnızca o anki sayfayı render eder. Sütun sırası/genişlik/görünürlük `ui.grid.<userId>.<moduleKey>.<gridId>` altında `localStorage`'a kaydedilir (yarım saniye gecikmeli). Ctrl+C TrinaGrid'in kendi kopyalama kısayolundan gelir. Telefonda tablo yerine kart listesi; sıralama üstteki bir menüden yapılır (sütun başlığı yok).
+- **CSV dışa aktarma:** `;` ayraç, UTF-8 BOM, `\r\n`, ekrandaki biçimle aynı değerler (Excel/Türkçe ayar için). Tarayıcıda gerçek indirme ile doğrulandı (bayt düzeyinde BOM kontrolü dahil).
+- **Tembel yükleme:** Cockpit dışındaki 7 modül `deferred as` ile ayrı JS parçalarına derleniyor (derlemede 18 parça oluştu). Yükleme süresince `SkeletonLoader`, hata olursa `ErrorState` + tekrar dene gösterilir.
+- **Breadcrumb:** normalde yalnızca son eleman kısalır; satır gerçekten sığmayacaksa (uzun başlıklar + dar ekran/büyük yazı) üst düzeyler de kısalabilir, en dar durumda tek "…" menüsüne katlanır.
+- **`ResponsiveForm`** `maxColumns` alır; diyalog içi formlar (kalem ekleme) pencereden bağımsız olarak 2 sütunu geçmez.
+
+**Test edilenler (Faz 3):** `flutter test` → 91 test geçti, `flutter analyze` temiz.
+- `test/shared/shared_widgets_test.dart`: `ResponsiveForm` 3/2/1 sütun ve tam genişlik alanı, ilk hatalı alana odaklanma; `Breadcrumb` sığınca tam liste, dar ekranda katlanma ("…" menüsü açılır), iki uzun elemanda taşma olmadan kısalma, iki kısa elemanda kısaltma yapılmaması; `ResponsiveScaffold` geniş ekranda etiketli düğmeler, telefonda birincil ikon + taşma menüsü; `AdaptiveDialog` telefonda tam ekran / diğerlerinde ortalı (ResponsiveForm ile intrinsic-genişlik hatası olmadığı doğrulandı); onay diyaloğu; `EmptyState`/`ErrorState`/`SkeletonLoader`; `FilterBar` satır halinde ve bottom sheet'te.
+- `test/shared/app_data_grid_test.dart`: geniş ekranda tablo / telefonda kart listesi ve biçimlendirilmiş değerler; sayfalama isteği; telefon sıralama menüsü; boş durum; `LocalGridDataSource` Türkçe filtre + sıralama + sayfalama, tarih aralığı; `GridQuery` JSON gidiş-dönüşü; CSV (`;`, BOM, tırnaklama, biçim); `GridPreferences` kaydet/yükle ve sıra uygulama; `Formatters.tryParseNumber`/`editable`.
+- `test/modules/siparis_test.dart`: mock API sözleşmeye uygun filtre/sıralama/sayfalama ve 401; `yonetici` tam yetkili liste→detay; `depo` salt okunur (Kabul); `satis` silme yok; dirty formda sekme kapatma ve breadcrumb ile geri dönme onay ister (Kabul); derin link `?id=` ve bilinmeyen id; kaydettikten sonra tarayıcı geri tuşuyla listeye dönünce liste yenilenir (mutasyon testiyle doğrulandı); yeni sipariş doğrulama + kalem ekleme + kaydetme; telefonda kart listesi.
+- Chrome'da elle denendi: liste/filtre/sıralama/sayfalama, CSV indirme (bayt düzeyinde BOM), çift tıklamayla detay açma, kalem düzenleme diyaloğu (2 sütun), Ctrl+S ile kaydetme, derin link + giriş sonrası geri dönüş, tarayıcı geri tuşuyla listeye dönüş, telefonda (400 px, iframe) breadcrumb ve form. Tembel yüklenen modülün gerçek derlemede ayrı JS parçasına ayrıldığı doğrulandı.
+- Bulunan ve düzeltilen iki hata: (1) breadcrumb iki elemanlı ve dar ekranda taşıyordu — üst düzeyler de gerektiğinde kısalacak şekilde değiştirildi; (2) kaydedip tarayıcı geri tuşuyla listeye dönüldüğünde liste yenilenmiyordu (yalnızca uygulama içi "geri" yenileniyordu) — artık her çıkışta yenileniyor.
+- Denenemeyen: TrinaGrid'in kendi Ctrl+C kopyalama kısayolu (pano izni gerektirdiği için otomasyonla doğrulanamadı, yalnızca kod/kütüphane incelemesiyle doğrulandı).
 
 ## Faz 4: Gerçek API
 
