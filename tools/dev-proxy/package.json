@@ -1,0 +1,13 @@
+{
+  "name": "erp-shell-dev-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Development-only proxy: serves the Flutter dev server and the test API from one origin (docs/api-contract.md section 7.1).",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -112,13 +112,53 @@ Fazları sırayla uygula. Bir fazı bitirince kutuları işaretle. Ayrıntılı 
 
 ## Faz 4: Gerçek API
 
-- [ ] `HttpAuthRepository`, `HttpMenuRepository` (`docs/menu-schema.md` sözleşmesine uygun)
-- [ ] `dio` interceptor: token ekleme, 401'de refresh, başarısızsa oturum sona erme diyaloğu
-- [ ] `config.json` ile çalışma zamanı ortam ayarı
-- [ ] Token depolama yaklaşımının yeniden değerlendirilmesi (güvenlik gözden geçirmesi)
-- [ ] Dağıtım notu: sunucuda `index.html` yönlendirmesi
+Gerçek modun sözleşmesi `docs/api-contract.md`'dir (`menu-schema.md`'deki ilgili maddeler gerçek mod için geçersiz). Shell API'ye uyar; çeviri `Http*` repository'lerindedir, UI değişmez. Mock modu eskisi gibi çalışmaya devam etmelidir.
 
-**Kabul:** `USE_MOCK=false` ile demo akışlarının tamamı gerçek API ile çalışır; UI kodunda değişiklik gerekmez.
+### 4.1 Hazırlık: dokümanlar, config.json, geliştirme proxy'si
+
+- [x] `CLAUDE.md` dosya haritası ve kesinleşmiş kararlar, `menu-schema.md` uyarı notu, bu yol haritası
+- [x] `web/config.json` (`{ "apiBaseUrl": "/api/v1", "useMock": false }`); `AppConfig` bunu çalışma zamanında okur, `--dart-define` önceliklidir
+- [x] `tools/dev-proxy/` (Node, kendi `package.json`'ı): `localhost:8080`; `/api/*` → `https://test.opticode.com.tr` (Host/Origin yeniden yazılır, `Set-Cookie` aynen), diğer her şey → `localhost:5000` (Flutter web-server)
+
+**Kabul:** Mock komutları (`--dart-define=USE_MOCK=true`) bozulmadan çalışır; `flutter analyze`/`flutter test` temiz; proxy üzerinden `GET /api/v1/health` test API'sine ulaşır.
+
+### 4.2 API istemcisi ve oturum
+
+- [ ] `dio` istemcisi, zarf ayrıştırma (`IsSuccessful`/`MessageCode`/`Data`) ve hata eşleme (HTTP durumu + `MessageCode` → tipli hata)
+- [ ] Auth interceptor: bellekte access token, `Authorization: Bearer`, `X-Requested-With: OptiCodeApp`, 401'de single-flight refresh + isteği bir kez tekrar, Web Locks (`opt-refresh`)
+- [ ] `HttpAuthRepository` (login, refresh, logout, `/me`); `auth.tokens` kullanılmaz
+- [ ] Açılışta sessiz refresh (F5 dahil): başarılıysa giriş ekranı gösterilmez
+- [ ] Refresh başarısızsa mevcut oturum sona erme diyaloğu; sekmeler ve durumları korunur; 403 davranışı; logout `auth.logoutSignal` ile diğer sekmelere
+
+**Kabul:** Gerçek kullanıcıyla giriş; F5'te sessiz oturum; eşzamanlı 401'lerde tek refresh isteği; refresh başarısızken diyalog ve girişten sonra aynı sekmeler. Birim testleri: zarf/hata eşleme, single-flight, tekrar deneme bir kez.
+
+### 4.3 Menü ve yetkiler
+
+- [ ] İstemci menü tanımı (`moduleKey` + `pageCode`, ARB başlıkları)
+- [ ] `HttpMenuRepository`: `/me` → `Yetkiler.Pages` ile süzme, boş grup gizleme, Cockpit yetkisiz; `badge` her zaman `null`
+- [ ] `ModulePermissions` eşlemesi (sayfa + buton kodu)
+- [ ] Gerçek modda favoriler `localStorage`'da
+
+**Kabul:** Gerçek modda yalnızca yetkili sayfalar menüde görünür (mock modüller görünmez); buton yetkisi yoksa ilgili butonlar gizlenir. Menü süzme ve yetki eşleme birim testleri.
+
+### 4.4 Cari modülü
+
+- [ ] Liste (`Arama`, rol ve pasif filtreleri, sayfalama; sunucu sıralaması yok, sütun sıralaması kapalı)
+- [ ] Detay formu, kaydet/sil; `NetsisBagliMi` olan cari salt okunur (Kaydet/Sil gizli)
+- [ ] `MessageCode` eşlemeleri (1002, 1004, 1005, 1201–1205) ARB'ye
+- [ ] `CariRepository`: mock ve http uygulamaları
+
+**Kabul:** Gerçek API ile cari listele/ara/filtrele, ekle, güncelle, sil; alan hataları ilgili alanda görünür. Repository ve eşleme testleri.
+
+### 4.5 Test sunucusuna dağıtım ve uçtan uca doğrulama
+
+- [ ] `flutter build web --release --no-web-resources-cdn --dart-define=USE_MOCK=false`; fontlar pubspec'e gömülü
+- [ ] `robocopy <build\web> C:\OptiCodeWeb\test\web /MIR /XF web.config`
+- [ ] `https://test.opticode.com.tr` üzerinde uçtan uca: giriş, F5, yenileme, çıkış, Cari akışı; konsolda CSP ihlali yok
+
+**Kabul:** Test ortamında demo akışının tamamı çalışır; UI kodunda değişiklik gerekmemiştir.
+
+**Kararlar (Faz 4):** Token depolama yeniden değerlendirmesi karara bağlandı: access token bellekte, refresh token `httpOnly` cookie (bkz. `CLAUDE.md`).
 
 ## Kapsam dışı / gelecek fikirleri
 

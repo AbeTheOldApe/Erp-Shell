@@ -18,7 +18,8 @@ Web üzerinde çalışan, Flutter ile yazılan bir **taban (shell) uygulama**. �
 |---|---|
 | `CLAUDE.md` | Bu dosya: özet, kararlar, mimari kurallar |
 | `docs/ui-behaviors.md` | Ekran ve etkileşim davranışlarının ayrıntılı şartnamesi |
-| `docs/menu-schema.md` | API sözleşmesi (login, menü JSON), yetki modeli, mock kullanıcılar |
+| `docs/menu-schema.md` | Mock modun sözleşmesi (login, menü JSON), yetki modeli, mock kullanıcılar |
+| `docs/api-contract.md` | **Gerçek API'nin kesin sözleşmesi** (gerçek modda geçerli; Faz 4) |
 | `docs/roadmap.md` | Fazlar ve kabul kriterleri. **Hangi işi yapacağını buradan al.** |
 
 ## Çalışma şekli
@@ -44,7 +45,12 @@ Web üzerinde çalışan, Flutter ile yazılan bir **taban (shell) uygulama**. �
 | Boşta kalma | Boşta kalma süresine bağlı **zorunlu çıkış yok**. Teknik oturum sorunu (token yenilenemedi vb.) olursa "tekrar giriş yapın" uyarısı çıkar; giriş sonrası aynı sekmelere dönülür. |
 | Favoriler, son kullanılanlar | **Faz 2** |
 | Cockpit (ana panel) | **Faz 2** |
-| Backend | Şimdilik yok. `USE_MOCK` bayrağı ile mock repository kullanılır. |
+| Backend | Mock modda `USE_MOCK` bayrağı ile mock repository kullanılır. Gerçek API Faz 4'te bağlanır. |
+| Gerçek mod sözleşmesi | Gerçek modda sözleşme `docs/api-contract.md`'dir; `menu-schema.md`'nin uç nokta, login/refresh gövdesi, `/me/menu` ve hata gövdesi tanımları gerçek mod için geçersizdir. Shell API'ye uyar; çeviri `Http*` repository'lerinde yapılır, UI değişmez. |
+| Token depolama (gerçek mod) | Access token **yalnızca bellekte**; refresh token `httpOnly` cookie'de (JS erişemez). `auth.tokens` sessionStorage anahtarı gerçek modda kullanılmaz. |
+| Menü (gerçek mod) | Menü ağacı **istemcide tanımlanır** ve `/me` → `Yetkiler.Pages` ile süzülür; `/me`'deki `Menu` kullanılmaz. |
+| Modül yetkileri (gerçek mod) | `ModulePermissions`, modül kaydındaki sayfa kodu + buton kodu eşlemesinden üretilir (`api-contract.md` §5.2). |
+| Favoriler (gerçek mod) | Şimdilik `localStorage`'da; API'ye taşınması sonraya kalır. |
 
 ## Teknoloji yığını
 

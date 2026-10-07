@@ -1,5 +1,12 @@
 # Menü Şeması, API Sözleşmesi ve Mock Veri
 
+> **Not (Faz 4):** Bu doküman **mock modun** sözleşmesidir. Gerçek modda `docs/api-contract.md` geçerlidir ve
+> bu dokümandaki şunlar gerçek mod için **geçersizdir**: §1'deki uç noktalar ve hata gövdesi
+> (`{ "code", "message" }`; gerçekte `IsSuccessful/Message/MessageCode/Data` zarfı), login/refresh
+> istek-cevap gövdeleri (refresh token gövdede değil `httpOnly` cookie'de), `/me/menu` (menü istemcide
+> tanımlanır, `/me` ile süzülür) ve §4'teki `auth.tokens` anahtarı (access token yalnızca bellekte).
+> Mock repository'ler bu biçimde kalır; çeviri `Http*` repository'lerinde yapılır.
+
 Mock verinin şekli, ileride backend'in uyması gereken **API sözleşmesidir**. Mock JSON dosyaları `assets/mock/` altında bu şekle birebir uymalıdır.
 
 ## 1. Uç noktalar
