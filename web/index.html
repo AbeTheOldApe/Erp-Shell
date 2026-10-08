@@ -41,36 +41,12 @@
     }
   </style>
 
-  <script>
-    // The app manages its own context menus. Ctrl + right click still opens
-    // the browser menu (useful for debugging).
-    document.addEventListener('contextmenu', function (e) {
-      if (!e.ctrlKey) e.preventDefault();
-    });
-
-    // Bridge for unsaved changes. The Dart side sets
-    // `window.erpShell.hasUnsavedChanges` when any tab is dirty.
-    window.erpShell = { hasUnsavedChanges: false };
-    window.addEventListener('beforeunload', function (e) {
-      if (window.erpShell && window.erpShell.hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    });
-  </script>
+  <script src="shell_boot.js"></script>
 </head>
 <body>
   <div id="app-loader" role="progressbar" aria-label="Yükleniyor">
     <div class="spinner"></div>
   </div>
-  <script>
-    window.addEventListener('flutter-first-frame', function () {
-      var loader = document.getElementById('app-loader');
-      if (!loader) return;
-      loader.classList.add('hidden');
-      setTimeout(function () { loader.remove(); }, 250);
-    });
-  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

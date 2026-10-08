@@ -4,9 +4,13 @@
 
 .DESCRIPTION
   1. flutter build web --release --no-web-resources-cdn --dart-define=USE_MOCK=false
-  2. checks the output: config.json present, <base href="/">, no third-party
-     addresses that the browser would call
-  3. writes dist\erp-shell-web-<short commit>.zip (build\web without web.config:
+  2. renames build files whose names contain [ ] space or % (IIS rejects the
+     double-encoded addresses the Flutter engine requests for them), keeping
+     FontManifest.json in step
+  3. checks the output: config.json present, <base href="/">, no third-party
+     addresses, no inline scripts / event handlers in index.html (these are
+     errors: the CSP will block them), no unsafe file names
+  4. writes dist\erp-shell-web-<short commit>.zip (build\web without web.config:
      the server keeps its own)
 
   See docs/deployment.md.
@@ -38,6 +42,8 @@ function Add-Warning([string]$text) {
 $web = Join-Path $root 'build\web'
 if (-not $SkipBuild) {
   Write-Step 'flutter build web (release, no CDN, USE_MOCK=false)'
+  # A clean output folder: files of earlier builds (renamed assets...) must not leak in.
+  if (Test-Path $web) { Remove-Item $web -Recurse -Force }
   & flutter build web --release --no-web-resources-cdn --dart-define=USE_MOCK=false
   if ($LASTEXITCODE -ne 0) { throw "flutter build failed (exit code $LASTEXITCODE)" }
 }
@@ -45,8 +51,58 @@ if (-not (Test-Path (Join-Path $web 'index.html'))) {
   throw "build\web\index.html not found; run without -SkipBuild"
 }
 
-# --- 2. checks --------------------------------------------------------------
+# --- 2. file names ----------------------------------------------------------
+# Packages may ship assets such as "Geist[wght].ttf" (shadcn_ui, pulled in by
+# trina_grid). The engine requests them percent-encoded twice ("%255B"), which
+# IIS refuses (404). Rename them and update the font manifest; other manifests
+# are not used to load fonts.
+Write-Step 'sanitizing file names'
+$unsafeName = '[\[\] %]'
+$assetsDir = Join-Path $web 'assets'
+$fontManifestPath = Join-Path $assetsDir 'FontManifest.json'
+function Get-SafeName([string]$name) {
+  # The build stores the name percent-encoded (Geist%5Bwght%5D.ttf): decode first.
+  $decoded = [uri]::UnescapeDataString($name)
+  return ($decoded -replace '\[', '-' -replace '\]', '' -replace ' ', '-' -replace '%', '_')
+}
+$renamed = 0
+foreach ($file in @(Get-ChildItem $web -Recurse -File | Where-Object { $_.Name -match $unsafeName })) {
+  $safe = Get-SafeName $file.Name
+  $oldRel = $file.FullName.Substring($assetsDir.Length + 1).Replace('\', '/')
+  $newRel = $oldRel.Substring(0, $oldRel.Length - $file.Name.Length) + $safe
+  Rename-Item -LiteralPath $file.FullName -NewName $safe
+  $renamed++
+  if (($file.FullName.StartsWith($assetsDir + '\')) -and (Test-Path $fontManifestPath)) {
+    $manifest = [System.IO.File]::ReadAllText($fontManifestPath)
+    $encodedOld = ($oldRel.Split('/') | ForEach-Object { [uri]::EscapeDataString($_) }) -join '/'
+    $manifest = $manifest.Replace($encodedOld, $newRel).Replace($oldRel, $newRel)
+    [System.IO.File]::WriteAllText($fontManifestPath, $manifest, (New-Object System.Text.UTF8Encoding($false)))
+  }
+  Write-Host "info: renamed $oldRel -> $newRel"
+}
+if ($renamed -eq 0) { Write-Host 'no file needed renaming' }
+
+# --- 3. checks --------------------------------------------------------------
 Write-Step 'checking the build output'
+$errors = New-Object System.Collections.Generic.List[string]
+function Add-BuildError([string]$text) {
+  $errors.Add($text)
+  Write-Host "ERROR: $text" -ForegroundColor Red
+}
+
+# Nothing left that IIS would reject, and the font manifest agrees.
+foreach ($file in Get-ChildItem $web -Recurse -File | Where-Object { $_.Name -match $unsafeName }) {
+  Add-Warning "file name with [ ] space or %: $($file.FullName.Substring($web.Length + 1))"
+}
+if (Test-Path $fontManifestPath) {
+  $manifestText = [System.IO.File]::ReadAllText($fontManifestPath)
+  if ($manifestText -match '"asset":"[^"]*(%|\[|\]| )') { Add-Warning 'FontManifest.json: a font asset path still contains %, [ ], or a space' }
+  foreach ($m in [regex]::Matches($manifestText, '"asset":"([^"]+)"')) {
+    if (-not (Test-Path (Join-Path $assetsDir $m.Groups[1].Value))) {
+      Add-Warning "FontManifest.json: font file not found: $($m.Groups[1].Value)"
+    }
+  }
+}
 
 # config.json is copied into the build and says "real API".
 $configPath = Join-Path $web 'config.json'
@@ -61,6 +117,14 @@ if (Test-Path $configPath) {
 # base href must be "/" (path URL strategy, served from the site root).
 $index = Get-Content (Join-Path $web 'index.html') -Raw
 if ($index -notmatch '<base href="/">') { Add-Warning 'index.html: <base href="/"> not found' }
+
+# The CSP will block inline scripts and event handler attributes. Scripts must
+# be files (web/*.js) loaded with <script src="...">.
+$inlineScripts = [regex]::Matches($index, '<script\b(?![^>]*\bsrc\s*=)(?![^>]*\btype\s*=\s*["'']application/(ld\+)?json["''])[^>]*>')
+if ($inlineScripts.Count -gt 0) { Add-BuildError "index.html has $($inlineScripts.Count) inline <script> block(s); move them to files under web/" }
+$handlers = [regex]::Matches($index, '<[A-Za-z][^>]*\son[a-z]+\s*=')
+if ($handlers.Count -gt 0) { Add-BuildError "index.html has $($handlers.Count) inline event handler attribute(s) (onclick= etc.)" }
+if ($index -match 'href\s*=\s*["'']\s*javascript:') { Add-BuildError 'index.html has a javascript: URL' }
 
 # Third-party addresses. The Flutter engine contains inert URL literals (docs,
 # issue links, and the default gstatic addresses that our config overrides), so
@@ -100,7 +164,13 @@ foreach ($urlHost in ($found.Keys | Sort-Object)) {
   }
 }
 
-# --- 3. pack ----------------------------------------------------------------
+# Errors stop here: a package that the CSP would break is not written.
+if ($errors.Count -gt 0) {
+  Write-Host "$($errors.Count) error(s); no zip was written." -ForegroundColor Red
+  exit 1
+}
+
+# --- 4. pack ----------------------------------------------------------------
 Write-Step 'packing'
 $commit = (& git rev-parse --short HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or -not $commit) { $commit = 'nogit' }

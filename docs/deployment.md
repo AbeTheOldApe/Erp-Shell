@@ -17,18 +17,32 @@ powershell -ExecutionPolicy Bypass -File tools\build-web.ps1
 Betik şunları yapar:
 
 1. `flutter build web --release --no-web-resources-cdn --dart-define=USE_MOCK=false`
-2. Çıktıyı denetler ve sorun bulursa **uyarır** (zip yine de yazılır; `-FailOnWarning` ile çıkış kodu 2 olur):
+2. Adında `[`, `]`, boşluk veya `%` olan dosyaları yeniden adlandırır (aşağıya bakın).
+3. Çıktıyı denetler ve sorun bulursa **uyarır** (zip yine de yazılır; `-FailOnWarning` ile çıkış kodu 2 olur):
    - `config.json` build'de var mı, `useMock: false` ve `apiBaseUrl: /api/v1` mi
    - `index.html` içinde `<base href="/">` var mı
+   - `index.html` içinde satır içi `<script>` bloğu, `onclick=` gibi olay özniteliği ya da `javascript:` adresi
+     var mı: bunlar **hatadır** (CSP engelleyeceği için); betik çıkış kodu 1 ile durur ve zip yazılmaz.
+     Scriptler `web/` altında dosya olmalı ve `<script src="...">` ile yüklenmelidir (bkz. `web/shell_boot.js`)
+   - adında `[ ] % boşluk` olan dosya kaldı mı, `FontManifest.json` var olmayan dosyaya işaret ediyor mu
    - `flutter_bootstrap.js` CanvasKit'i yerelden yüklüyor ve yedek font adresini kendi origin'ine çeviriyor mu
    - build'de tarayıcının çağıracağı başka bir dış adres (gstatic, googleapis, CDN vb.) geçiyor mu
      (Flutter motorundaki yalnızca doküman/hata bağlantıları ve ayarımızla geçersiz kılınan varsayılan
      gstatic adresleri "info" olarak listelenir; istek üretmez)
-3. `build\web` klasörünü `dist\erp-shell-web-<kısa commit>.zip` olarak paketler. Çalışma ağacında
+4. `build\web` klasörünü `dist\erp-shell-web-<kısa commit>.zip` olarak paketler. Çalışma ağacında
    commit edilmemiş değişiklik varsa ad `-dirty` ile biter; **dağıtım için temiz bir commit kullanın.**
    Zip'e `web.config` **konmaz**.
 
 `-SkipBuild` mevcut `build\web`'i yeniden derlemeden denetler ve paketler. `dist\` git'e girmez.
+
+### Dosya adı temizliği (IIS çift kodlama)
+
+`trina_grid` → `shadcn_ui` paketi `Geist[wght].ttf` ve `GeistMono[wght].ttf` fontlarını getirir. Flutter
+motoru adı iki kez kodlayarak (`%255B`) ister; IIS iki kez kodlanmış adresleri reddeder (404) ve IIS
+ayarı gevşetilmez. Betik bu dosyaları `Geist-wght.ttf` ve `GeistMono-wght.ttf` olarak yeniden adlandırır
+ve `assets\FontManifest.json`'u buna göre günceller. Başka bir paket de özel karakterli dosya getirirse aynı
+adım onu da düzeltir; düzeltemediği olursa uyarı verir. Her derleme önce `build\web`'i siler, böylece
+eski derlemelerin dosyaları pakete karışmaz.
 
 Fontlar (Roboto) `assets/fonts/Roboto/` altında pubspec'e gömülüdür; uygulama çalışırken Google
 Fonts'a ya da başka bir dış adrese font isteği gitmez. Roboto'da olmayan karakterler (Kiril, emoji, CJK)

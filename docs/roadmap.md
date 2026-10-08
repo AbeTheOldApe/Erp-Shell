@@ -173,7 +173,11 @@ Gerçek modun sözleşmesi `docs/api-contract.md`'dir (`menu-schema.md`'deki ilg
 
 **Kabul:** Test ortamında demo akışının tamamı çalışır; UI kodunda değişiklik gerekmemiştir.
 
-**Hazırlık notları (4.5):** Build çıktısında `config.json` var, `index.html` `<base href="/">` içeriyor (betik denetler). Motorun gstatic varsayılan adresleri (`flutter.js`, `flutter_bootstrap.js`, `main.dart.js` içinde yalnızca sabit metin) `useLocalCanvasKit` ve `fontFallbackBaseUrl` ayarlarıyla geçersiz; betik bunları "info" olarak listeler. Çalışma anında ağ isteği tarayıcıda henüz doğrulanmadı (otomasyon tarayıcısı bağlı değildi): sunucuda Ağ sekmesinde `gstatic`/`googleapis` isteği olmadığını bir kez kontrol edin.
+**Test sunucusunda bulunanlar (4.5):** Giriş, Cari akışı, F5 (`/m/cari` SPA yönlendirmesi dahil), çıkış çalışıyor; Ağ sekmesinde gstatic/googleapis isteği yok. Açılıştaki `POST /auth/refresh` 401 (oturum yokken) beklenen davranıştır. İki konsol sorunu çıktı ve düzeltildi:
+- [x] **CSP (Report-Only, ileride engelleme):** `index.html`'deki iki satır içi script (bağlam menüsü + `beforeunload` köprüsü, ilk kare dinleyicisi) `web/shell_boot.js` dosyasına taşındı; davranış aynı. Satır içi olay özniteliği yok. `tools/build-web.ps1` çıktıda satır içi script / olay özniteliği / `javascript:` bulursa hata verir ve zip yazmaz. (Satır içi `<style>` bloğu duruyor; CSP `style-src` kısıtlarsa ayrıca ele alınacak.)
+- [x] **Font 404 (`Geist%5Bwght%5D.ttf`):** `shadcn_ui` doğrudan eklenmedi, `trina_grid 2.3.0`'ın bağımlılığıdır (grid'in menü/yan çubuk bileşenleri onu içe aktarır; trina_grid kaldırılmadan çıkarılamaz). Paket `Geist[wght].ttf`/`GeistMono[wght].ttf` fontlarını bildirir; motor adı çift kodlayıp (`%255B`) istediği için IIS reddediyordu. `build-web.ps1` dosyaları `Geist-wght.ttf`/`GeistMono-wght.ttf` olarak yeniden adlandırır ve `FontManifest.json`'u günceller; kalan özel karakterli dosya için uyarı verir. Yeni paket eklenmedi.
+
+**Hazırlık notları (4.5):** Build çıktısında `config.json` var, `index.html` `<base href="/">` içeriyor (betik denetler). Motorun gstatic varsayılan adresleri (`flutter.js`, `flutter_bootstrap.js`, `main.dart.js` içinde yalnızca sabit metin) `useLocalCanvasKit` ve `fontFallbackBaseUrl` ayarlarıyla geçersiz; betik bunları "info" olarak listeler. Test sunucusunda Ağ sekmesinde `gstatic`/`googleapis` isteği olmadığı doğrulandı.
 
 **Kararlar (Faz 4):** Token depolama yeniden değerlendirmesi karara bağlandı: access token bellekte, refresh token `httpOnly` cookie (bkz. `CLAUDE.md`).
 
