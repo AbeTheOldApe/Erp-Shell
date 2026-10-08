@@ -1,3 +1,4 @@
+import 'package:erp_shell/core/config/app_config.dart';
 import 'package:erp_shell/core/l10n/generated/app_localizations.dart';
 import 'package:erp_shell/core/storage/key_value_store.dart';
 import 'package:erp_shell/core/theme/app_theme.dart';
@@ -74,6 +75,9 @@ Future<void> _pumpGrid(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        appConfigProvider.overrideWithValue(
+          const AppConfig(useMock: true, apiBaseUrl: '/api'),
+        ),
         localStoreProvider.overrideWithValue(store ?? MemoryKeyValueStore()),
         sessionStoreProvider.overrideWithValue(MemoryKeyValueStore()),
       ],

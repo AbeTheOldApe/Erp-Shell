@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../shell/login/login_page.dart';
 import '../../shell/shell_page.dart';
+import '../../shell/startup_page.dart';
 import '../auth/session_controller.dart';
 import 'routes.dart';
 
@@ -11,20 +12,33 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 final routerProvider = Provider<GoRouter>((ref) {
   final refresh = _RouterRefresh();
-  ref.listen(
-    sessionProvider.select((s) => s.isSignedIn),
-    (_, _) => refresh.ping(),
-  );
+  ref.listen(sessionProvider.select((s) => s.status), (previous, next) {
+    // Expired <-> active keeps the user in place; only sign-in, sign-out and
+    // the end of the startup refresh change where the router sends them.
+    final wasIn =
+        previous == SessionStatus.active || previous == SessionStatus.expired;
+    final isIn = next == SessionStatus.active || next == SessionStatus.expired;
+    if (wasIn != isIn || previous == SessionStatus.restoring) refresh.ping();
+  });
 
   final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: Routes.home,
     refreshListenable: refresh,
-    redirect: (context, state) => authRedirect(
-      signedIn: ref.read(sessionProvider).isSignedIn,
-      uri: state.uri,
-    ),
+    redirect: (context, state) {
+      final session = ref.read(sessionProvider);
+      return authRedirect(
+        signedIn: session.isSignedIn,
+        restoring: session.isRestoring,
+        uri: state.uri,
+      );
+    },
     routes: [
+      GoRoute(
+        path: Routes.loading,
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: StartupPage()),
+      ),
       GoRoute(
         path: Routes.login,
         pageBuilder: (context, state) => NoTransitionPage(
@@ -60,23 +74,48 @@ final routerProvider = Provider<GoRouter>((ref) {
   return router;
 });
 
-/// Route guard: signed-out users go to the login page (remembering where
-/// they wanted to go); signed-in users are sent away from it.
-String? authRedirect({required bool signedIn, required Uri uri}) {
+/// Route guard: while the startup refresh runs everything waits on the
+/// loading page; signed-out users then go to the login page (remembering
+/// where they wanted to go); signed-in users are sent away from it.
+String? authRedirect({
+  required bool signedIn,
+  required Uri uri,
+  bool restoring = false,
+}) {
   final onLogin = uri.path == Routes.login;
-  if (!signedIn) {
-    if (onLogin) return null;
-    final from = uri.path == Routes.home ? null : uri.toString();
+  final onLoading = uri.path == Routes.loading;
+  if (restoring) {
+    if (onLoading) return null;
+    return _withFrom(Routes.loading, uri);
+  }
+  if (onLoading) {
+    // go_router does not redirect a second time, so the final destination
+    // is chosen here: the wanted page, or the login page that remembers it.
+    final from = uri.queryParameters[Routes.fromParam];
+    final wanted = from != null && from.startsWith('/') ? from : null;
+    if (signedIn) return wanted ?? Routes.home;
     return Uri(
       path: Routes.login,
-      queryParameters: from == null ? null : {Routes.fromParam: from},
+      queryParameters: wanted == null ? null : {Routes.fromParam: wanted},
     ).toString();
+  }
+  if (!signedIn) {
+    if (onLogin) return null;
+    return _withFrom(Routes.login, uri);
   }
   if (onLogin) {
     final from = uri.queryParameters[Routes.fromParam];
     return from != null && from.startsWith('/') ? from : Routes.home;
   }
   return null;
+}
+
+String _withFrom(String path, Uri uri) {
+  final from = uri.path == Routes.home ? null : uri.toString();
+  return Uri(
+    path: path,
+    queryParameters: from == null ? null : {Routes.fromParam: from},
+  ).toString();
 }
 
 class _RouterRefresh extends ChangeNotifier {

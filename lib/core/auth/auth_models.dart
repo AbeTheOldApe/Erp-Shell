@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'permissions.dart';
+
 @immutable
 class AppUser {
   const AppUser({
@@ -7,6 +9,7 @@ class AppUser {
     required this.username,
     required this.displayName,
     this.roles = const [],
+    this.grants,
   });
 
   factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
@@ -21,6 +24,10 @@ class AppUser {
   final String displayName;
   final List<String> roles;
 
+  /// Page and button grants from the real API's `/me`; `null` in mock mode,
+  /// where the menu carries the permissions.
+  final ApiGrants? grants;
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'username': username,
@@ -34,7 +41,7 @@ class AppUser {
 class AuthSession {
   const AuthSession({
     required this.accessToken,
-    required this.refreshToken,
+    this.refreshToken = '',
     required this.expiresAt,
     required this.user,
   });
@@ -65,9 +72,20 @@ class AuthSession {
   );
 
   final String accessToken;
+
+  /// Mock mode only; the real API keeps the refresh token in an `httpOnly`
+  /// cookie the app cannot read.
   final String refreshToken;
   final DateTime expiresAt;
   final AppUser user;
+
+  AuthSession copyWith({String? accessToken, DateTime? expiresAt}) =>
+      AuthSession(
+        accessToken: accessToken ?? this.accessToken,
+        refreshToken: refreshToken,
+        expiresAt: expiresAt ?? this.expiresAt,
+        user: user,
+      );
 
   Map<String, dynamic> toJson() => {
     'accessToken': accessToken,

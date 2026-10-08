@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:erp_shell/core/config/app_config.dart';
 import 'package:erp_shell/core/storage/key_value_store.dart';
 import 'package:erp_shell/core/storage/storage_keys.dart';
 import 'package:erp_shell/shell/command_palette.dart';
@@ -83,6 +84,9 @@ void main() {
       });
       final container = ProviderContainer(
         overrides: [
+          appConfigProvider.overrideWithValue(
+            const AppConfig(useMock: true, apiBaseUrl: '/api'),
+          ),
           localStoreProvider.overrideWithValue(local),
           sessionStoreProvider.overrideWithValue(session),
         ],

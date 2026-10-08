@@ -9,7 +9,7 @@
 
   "loginTitle": "Giriş",
   "loginSubtitle": "Devam etmek için giriş yapın",
-  "loginUsername": "Kullanıcı adı",
+  "loginUsername": "Kullanıcı adı veya e-posta",
   "loginPassword": "Şifre",
   "loginButton": "Giriş yap",
   "loginUsernameRequired": "Kullanıcı adı gerekli",
@@ -199,5 +199,20 @@
   "kalemAdd": "Kalem ekle",
   "kalemEdit": "Kalemi düzenle",
   "kalemDelete": "Kalemi sil",
-  "kalemEmpty": "Henüz kalem yok"
+  "kalemEmpty": "Henüz kalem yok",
+
+  "loginTooManyAttempts": "Çok fazla deneme yaptınız. Lütfen biraz bekleyip tekrar deneyin.",
+  "startupLoading": "Oturum açılıyor…",
+  "apiNetworkError": "Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.",
+  "apiMessage1001": "İstek içeriği geçersiz.",
+  "apiMessage1002": "Zorunlu alan eksik.",
+  "apiMessage1003": "Geçersiz değer girildi.",
+  "apiMessage1004": "Kayıt bulunamadı.",
+  "apiMessage1005": "Kayıt zaten bu durumda.",
+  "apiMessage2001": "İstek okunamadı.",
+  "apiMessage2002": "Girilen bilgiler geçersiz.",
+  "apiMessage2003": "Bu işlem için yetkiniz yok.",
+  "apiMessage2004": "İstenen kaynak bulunamadı.",
+  "apiMessage2005": "Çok fazla istek gönderildi. Lütfen biraz bekleyin.",
+  "apiMessage2999": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin."
 }

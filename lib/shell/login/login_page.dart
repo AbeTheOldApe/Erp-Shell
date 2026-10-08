@@ -5,7 +5,7 @@ import '../../core/auth/auth_models.dart';
 import '../../core/auth/auth_repository.dart';
 import '../../core/auth/session_controller.dart';
 import '../../core/l10n/locale_controller.dart';
-import '../../core/network/api_exception.dart';
+import '../../core/network/api_messages.dart';
 import '../../core/theme/app_theme.dart';
 
 /// Sign-in page. After signing in the router guard sends the user to
@@ -44,10 +44,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       await ref
           .read(sessionProvider.notifier)
           .login(_username.text, _password.text);
-    } on UnauthorizedException {
-      _error = l10n.loginFailed;
-    } catch (_) {
-      _error = l10n.loginUnexpectedError;
+    } catch (e) {
+      _error = loginErrorText(l10n, e);
     }
     if (mounted) setState(() => _busy = false);
   }

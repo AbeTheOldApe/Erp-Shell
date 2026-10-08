@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/auth/session_controller.dart';
 import '../core/l10n/locale_controller.dart';
-import '../core/network/api_exception.dart';
+import '../core/network/api_messages.dart';
 import '../core/theme/app_theme.dart';
 import 'shell_dialogs.dart';
 import 'side_menu/menu_providers.dart';
@@ -46,10 +46,8 @@ class _SessionExpiredDialogState extends ConsumerState<SessionExpiredDialog> {
       if (ref.read(menuProvider).hasError) ref.invalidate(menuProvider);
       if (mounted) Navigator.of(context).pop();
       return;
-    } on UnauthorizedException {
-      _error = l10n.loginFailed;
-    } catch (_) {
-      _error = l10n.loginUnexpectedError;
+    } catch (e) {
+      _error = loginErrorText(l10n, e);
     }
     if (mounted) setState(() => _busy = false);
   }

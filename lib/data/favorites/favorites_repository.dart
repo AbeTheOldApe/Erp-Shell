@@ -4,6 +4,7 @@ import '../../core/auth/session_controller.dart';
 import '../../core/config/app_config.dart';
 import '../../core/storage/key_value_store.dart';
 import '../mock/mock_backend.dart';
+import 'local_favorites_repository.dart';
 import 'mock_favorites_repository.dart';
 
 /// Favorite modules of the signed-in user (`docs/menu-schema.md` §1):
@@ -27,8 +28,8 @@ final favoritesRepositoryProvider = Provider<FavoritesRepository>((ref) {
       accessToken: () => ref.read(sessionProvider).session?.accessToken,
     );
   }
-  throw UnimplementedError(
-    'HttpFavoritesRepository arrives in phase 4. '
-    'Run with --dart-define=USE_MOCK=true.',
+  return LocalFavoritesRepository(
+    store: ref.watch(localStoreProvider),
+    userId: () => ref.read(currentUserIdProvider),
   );
 });

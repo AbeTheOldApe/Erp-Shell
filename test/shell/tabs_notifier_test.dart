@@ -1,3 +1,4 @@
+import 'package:erp_shell/core/config/app_config.dart';
 import 'package:erp_shell/core/storage/key_value_store.dart';
 import 'package:erp_shell/shell/tabs/tabs_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,6 +27,9 @@ void main() {
   setUp(() {
     container = ProviderContainer(
       overrides: [
+        appConfigProvider.overrideWithValue(
+          const AppConfig(useMock: true, apiBaseUrl: '/api'),
+        ),
         sessionStoreProvider.overrideWithValue(MemoryKeyValueStore()),
         localStoreProvider.overrideWithValue(MemoryKeyValueStore()),
       ],

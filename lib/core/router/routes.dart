@@ -2,6 +2,7 @@
 abstract final class Routes {
   static const home = '/';
   static const login = '/login';
+  static const loading = '/loading';
   static const modulePattern = '/m/:moduleKey';
   static const fromParam = 'from';
 

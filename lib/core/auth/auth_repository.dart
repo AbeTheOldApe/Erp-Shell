@@ -2,10 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/mock/mock_backend.dart';
 import '../config/app_config.dart';
+import '../network/api_client.dart';
 import 'auth_models.dart';
+import 'http_auth_repository.dart';
 import 'mock_auth_repository.dart';
 
-/// Authentication API (`docs/menu-schema.md` §1).
+/// Authentication API. Mock mode follows `docs/menu-schema.md` §1, real mode
+/// `docs/api-contract.md` §4.
 abstract class AuthRepository {
   /// `POST /auth/login`. Throws [UnauthorizedException] on bad credentials.
   Future<AuthSession> login(String username, String password);
@@ -16,6 +19,15 @@ abstract class AuthRepository {
 
   /// `POST /auth/logout`.
   Future<void> logout(AuthSession session);
+
+  /// Whether the session is kept in `sessionStorage` across reloads (mock
+  /// mode). The real API keeps the access token in memory only.
+  bool get persistsSession => true;
+
+  /// Silent sign-in at startup: refreshes with the browser's cookie and
+  /// loads the user. `null` when there is no valid session. Only used when
+  /// [persistsSession] is `false`.
+  Future<AuthSession?> restoreSession() async => null;
 
   /// Sign-in shortcuts for demo environments; empty for the real API.
   List<DemoAccount> get demoAccounts => const [];
@@ -34,8 +46,5 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   if (config.useMock) {
     return MockAuthRepository(ref.watch(mockBackendProvider));
   }
-  throw UnimplementedError(
-    'HttpAuthRepository arrives in phase 4. '
-    'Run with --dart-define=USE_MOCK=true.',
-  );
+  return HttpAuthRepository(ref.watch(apiClientProvider));
 });

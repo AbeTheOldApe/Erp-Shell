@@ -43,3 +43,36 @@ class ModulePermissions {
   @override
   int get hashCode => Object.hash(canView, canAdd, canEdit, canDelete);
 }
+
+/// What `GET /me` returns under `Yetkiler` (`docs/api-contract.md` §4.2):
+/// page codes and, per page, button codes.
+@immutable
+class ApiGrants {
+  const ApiGrants({this.pages = const {}, this.buttons = const {}});
+
+  factory ApiGrants.fromJson(Map<String, dynamic> json) {
+    final buttons = json['Buttons'];
+    return ApiGrants(
+      pages: {
+        for (final page in json['Pages'] as List<dynamic>? ?? []) '$page',
+      },
+      buttons: {
+        if (buttons is Map)
+          for (final entry in buttons.entries)
+            '${entry.key}': {
+              for (final code in entry.value as List<dynamic>? ?? []) '$code',
+            },
+      },
+    );
+  }
+
+  static const none = ApiGrants();
+
+  final Set<String> pages;
+  final Map<String, Set<String>> buttons;
+
+  bool hasPage(String pageCode) => pages.contains(pageCode);
+
+  bool hasButton(String pageCode, String buttonCode) =>
+      buttons[pageCode]?.contains(buttonCode) ?? false;
+}

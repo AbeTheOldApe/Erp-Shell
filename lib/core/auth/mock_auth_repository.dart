@@ -9,6 +9,12 @@ class MockAuthRepository implements AuthRepository, SessionExpirySimulator {
   final MockBackend _backend;
 
   @override
+  bool get persistsSession => true;
+
+  @override
+  Future<AuthSession?> restoreSession() async => null;
+
+  @override
   Future<AuthSession> login(String username, String password) async {
     await _backend.latency();
     final normalized = username.trim();

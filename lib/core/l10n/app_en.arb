@@ -9,7 +9,7 @@
 
   "loginTitle": "Sign in",
   "loginSubtitle": "Sign in to continue",
-  "loginUsername": "Username",
+  "loginUsername": "Username or e-mail",
   "loginPassword": "Password",
   "loginButton": "Sign in",
   "loginUsernameRequired": "Username is required",
@@ -159,5 +159,20 @@
   "kalemAdd": "Add line",
   "kalemEdit": "Edit line",
   "kalemDelete": "Delete line",
-  "kalemEmpty": "No lines yet"
+  "kalemEmpty": "No lines yet",
+
+  "loginTooManyAttempts": "Too many attempts. Please wait a moment and try again.",
+  "startupLoading": "Signing in…",
+  "apiNetworkError": "Could not reach the server. Check your connection.",
+  "apiMessage1001": "The request content is invalid.",
+  "apiMessage1002": "A required field is missing.",
+  "apiMessage1003": "An invalid value was entered.",
+  "apiMessage1004": "Record not found.",
+  "apiMessage1005": "The record is already in that state.",
+  "apiMessage2001": "The request could not be read.",
+  "apiMessage2002": "The information entered is invalid.",
+  "apiMessage2003": "You do not have permission for this action.",
+  "apiMessage2004": "The requested resource was not found.",
+  "apiMessage2005": "Too many requests. Please wait a moment.",
+  "apiMessage2999": "An unexpected error occurred. Please try again."
 }

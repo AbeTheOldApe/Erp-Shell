@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/session_controller.dart';
 import '../../core/config/app_config.dart';
 import '../mock/mock_backend.dart';
+import 'http_menu_repository.dart';
 import 'menu_models.dart';
 import 'mock_menu_repository.dart';
 
@@ -22,8 +23,5 @@ final menuRepositoryProvider = Provider<MenuRepository>((ref) {
       accessToken: () => ref.read(sessionProvider).session?.accessToken,
     );
   }
-  throw UnimplementedError(
-    'HttpMenuRepository arrives in phase 4. '
-    'Run with --dart-define=USE_MOCK=true.',
-  );
+  return const HttpMenuRepository();
 });

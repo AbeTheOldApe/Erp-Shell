@@ -11,6 +11,10 @@ import 'auth_models.dart';
 import 'auth_repository.dart';
 
 enum SessionStatus {
+  /// Real mode at startup: the silent refresh is still running. The router
+  /// shows the loading page until this is settled.
+  restoring,
+
   /// No user; the router sends everything to the login page.
   signedOut,
 
@@ -28,6 +32,8 @@ class SessionState {
 
   const SessionState.signedOut() : this._(SessionStatus.signedOut, null);
 
+  const SessionState.restoring() : this._(SessionStatus.restoring, null);
+
   const SessionState.active(AuthSession session)
     : this._(SessionStatus.active, session);
 
@@ -38,7 +44,9 @@ class SessionState {
   final AuthSession? session;
 
   AppUser? get user => session?.user;
-  bool get isSignedIn => status != SessionStatus.signedOut;
+  bool get isSignedIn =>
+      status == SessionStatus.active || status == SessionStatus.expired;
+  bool get isRestoring => status == SessionStatus.restoring;
 }
 
 class SessionController extends Notifier<SessionState> {
@@ -59,6 +67,14 @@ class SessionController extends Notifier<SessionState> {
         });
     ref.onDispose(subscription.cancel);
 
+    if (!_repository.persistsSession) {
+      // Real API: the access token lives in memory only. A token left in
+      // storage by an older build is dropped, never read.
+      _store.remove(StorageKeys.authTokens);
+      Future.microtask(_restore);
+      return const SessionState.restoring();
+    }
+
     final stored = _store.read(StorageKeys.authTokens);
     if (stored == null) return const SessionState.signedOut();
     try {
@@ -68,6 +84,21 @@ class SessionController extends Notifier<SessionState> {
       _store.remove(StorageKeys.authTokens);
       return const SessionState.signedOut();
     }
+  }
+
+  /// Silent sign-in at startup (F5 included): refresh with the cookie, then
+  /// load the user. Failure leaves the user signed out.
+  Future<void> _restore() async {
+    AuthSession? session;
+    try {
+      session = await _repository.restoreSession();
+    } on Object {
+      session = null;
+    }
+    if (!ref.mounted || state.status != SessionStatus.restoring) return;
+    state = session == null
+        ? const SessionState.signedOut()
+        : SessionState.active(session);
   }
 
   /// Signs in. Also used by the "session expired" dialog; tabs stay open
@@ -122,6 +153,10 @@ class SessionController extends Notifier<SessionState> {
     }
   }
 
+  /// Renews the access token once for all callers waiting at the same time.
+  /// `false` (and [SessionStatus.expired]) when it could not be renewed.
+  Future<bool> refreshSession() => _refresh();
+
   Future<bool> _refresh() {
     return _refreshing ??= _doRefresh().whenComplete(() => _refreshing = null);
   }
@@ -132,7 +167,7 @@ class SessionController extends Notifier<SessionState> {
     try {
       _setActive(await _repository.refresh(session));
       return true;
-    } on ApiException {
+    } on Object {
       if (state.session != null) state = SessionState.expired(session);
       return false;
     }
@@ -147,7 +182,9 @@ class SessionController extends Notifier<SessionState> {
   }
 
   void _setActive(AuthSession session) {
-    _store.write(StorageKeys.authTokens, jsonEncode(session.toJson()));
+    if (_repository.persistsSession) {
+      _store.write(StorageKeys.authTokens, jsonEncode(session.toJson()));
+    }
     state = SessionState.active(session);
   }
 }
