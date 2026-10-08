@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'cari/cari_module.dart' deferred as cari;
 import 'cockpit/cockpit_module.dart';
 import 'kullanici/kullanici_module.dart' deferred as kullanici;
 import 'module_def.dart';
@@ -19,6 +20,17 @@ final Map<String, ModuleDef> moduleRegistry = Map.unmodifiable({
     'siparis',
     (ctx) => siparis.SiparisModule(ctx),
     load: siparis.loadLibrary,
+  ),
+  'cari': ModuleDef(
+    'cari',
+    (ctx) => cari.CariModule(ctx),
+    load: cari.loadLibrary,
+    api: const ModuleApiPermissions(
+      pageCode: 'CariMain',
+      addButton: 'KAYDET',
+      editButton: 'KAYDET',
+      deleteButton: 'SIL',
+    ),
   ),
   'musteri': ModuleDef(
     'musteri',

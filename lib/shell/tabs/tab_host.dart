@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/l10n/locale_controller.dart';
 import '../../data/menu/menu_tree.dart';
 import '../../modules/module_def.dart';
 import '../../modules/registry.dart';
@@ -11,6 +12,8 @@ import '../../shared/states/skeleton_loader.dart';
 import '../content_states.dart';
 import '../shell_controller.dart';
 import '../side_menu/menu_providers.dart';
+import '../top_bar.dart';
+import 'tab_access_warnings.dart';
 import 'tab_item.dart';
 import 'tabs_notifier.dart';
 
@@ -168,6 +171,26 @@ class _ModuleHostState extends ConsumerState<ModuleHost>
     ref.watch(menuNodesProvider);
     final def = ref.watch(moduleRegistryProvider)[moduleKey];
     if (def == null) return ModuleNotFoundView(moduleKey: moduleKey);
+    // After "Menüyü yenile" the user may no longer see a module that is
+    // still open in a tab.
+    if (!def.home && ref.watch(menuLoadedProvider) && !permissions.canView) {
+      return const NoAccessView();
+    }
+    final warn = ref.watch(
+      tabAccessWarningsProvider.select((keys) => keys.contains(moduleKey)),
+    );
+    final content = _buildModule(def);
+    if (!warn) return content;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _AccessWarningBanner(moduleKey: moduleKey),
+        Expanded(child: content),
+      ],
+    );
+  }
+
+  Widget _buildModule(ModuleDef def) {
     final codeLoaded = _codeLoaded;
     if (codeLoaded == null) return def.builder(this);
     return FutureBuilder<void>(
@@ -183,6 +206,36 @@ class _ModuleHostState extends ConsumerState<ModuleHost>
         }
         return def.builder(this);
       },
+    );
+  }
+}
+
+/// "Yetkiniz değişmiş olabilir" with the "Menüyü yenile" action; shown above
+/// a module after the API answered one of its requests with 403.
+class _AccessWarningBanner extends ConsumerWidget {
+  const _AccessWarningBanner({required this.moduleKey});
+
+  final String moduleKey;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    return MaterialBanner(
+      leading: const Icon(Icons.lock_outline),
+      content: Text(
+        '${l10n.accessMayHaveChanged} ${l10n.accessMayHaveChangedHint}',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => refreshMenu(context, ref),
+          child: Text(l10n.refreshMenu),
+        ),
+        TextButton(
+          onPressed: () =>
+              ref.read(tabAccessWarningsProvider.notifier).dismiss(moduleKey),
+          child: Text(l10n.close),
+        ),
+      ],
     );
   }
 }

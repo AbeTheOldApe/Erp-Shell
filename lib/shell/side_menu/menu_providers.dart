@@ -8,6 +8,7 @@ import '../../core/storage/storage_keys.dart';
 import '../../data/menu/menu_models.dart';
 import '../../data/menu/menu_repository.dart';
 import '../../data/menu/menu_tree.dart';
+import '../tabs/tab_access_warnings.dart';
 
 /// Menu tree of the signed-in user. Fetched once per sign-in; [reload]
 /// implements "Menüyü yenile".
@@ -24,6 +25,9 @@ class MenuTreeController extends AsyncNotifier<List<MenuNode>> {
   Future<void> reload() async {
     final menu = await _fetch();
     state = AsyncData(menu);
+    // Fresh permissions: earlier "permissions may have changed" warnings
+    // no longer apply.
+    ref.read(tabAccessWarningsProvider.notifier).clear();
   }
 
   Future<List<MenuNode>> _fetch() async {

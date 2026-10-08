@@ -76,3 +76,34 @@ class ApiGrants {
   bool hasButton(String pageCode, String buttonCode) =>
       buttons[pageCode]?.contains(buttonCode) ?? false;
 }
+
+/// How a module's [ModulePermissions] come from the real API's grants
+/// (`docs/api-contract.md` §5.2): the page code decides `canView`; the
+/// button codes decide add / edit / delete. A flag without a button code
+/// stays `false`.
+@immutable
+class ModuleApiPermissions {
+  const ModuleApiPermissions({
+    required this.pageCode,
+    this.addButton,
+    this.editButton,
+    this.deleteButton,
+  });
+
+  final String pageCode;
+  final String? addButton;
+  final String? editButton;
+  final String? deleteButton;
+
+  ModulePermissions resolve(ApiGrants grants) {
+    final canView = grants.hasPage(pageCode);
+    bool has(String? code) =>
+        canView && code != null && grants.hasButton(pageCode, code);
+    return ModulePermissions(
+      canView: canView,
+      canAdd: has(addButton),
+      canEdit: has(editButton),
+      canDelete: has(deleteButton),
+    );
+  }
+}

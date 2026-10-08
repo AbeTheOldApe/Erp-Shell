@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/auth/session_controller.dart';
 import '../core/l10n/locale_controller.dart';
+import '../core/network/api_client.dart';
 import '../core/router/app_router.dart';
 import '../core/router/routes.dart';
 import '../core/theme/app_theme.dart';
@@ -21,6 +22,7 @@ import 'side_menu/menu_providers.dart';
 import 'side_menu/side_menu_panel.dart';
 import 'side_menu/side_menu_rail.dart';
 import 'tabs/shell_tab_bar.dart';
+import 'tabs/tab_access_warnings.dart';
 import 'tabs/tab_host.dart';
 import 'tabs/tabs_notifier.dart';
 import 'tabs/tabs_persistence.dart';
@@ -200,6 +202,12 @@ class _ShellPageState extends ConsumerState<ShellPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(forbiddenEventsProvider, (_, _) {
+      final active = ref.read(tabsProvider).activeKey;
+      if (active != null) {
+        ref.read(tabAccessWarningsProvider.notifier).flag(active);
+      }
+    });
     ref.listen(menuLoadedProvider, (_, loaded) {
       if (loaded) _controller.syncFromLocation(widget.location);
     });

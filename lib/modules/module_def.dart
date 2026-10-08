@@ -2,12 +2,19 @@ import 'package:flutter/widgets.dart';
 
 import '../core/auth/permissions.dart';
 
-export '../core/auth/permissions.dart' show ModulePermissions;
+export '../core/auth/permissions.dart'
+    show ModuleApiPermissions, ModulePermissions;
 
 /// Registration of a module: `moduleKey -> builder`.
 @immutable
 class ModuleDef {
-  const ModuleDef(this.key, this.builder, {this.load, this.home = false});
+  const ModuleDef(
+    this.key,
+    this.builder, {
+    this.load,
+    this.home = false,
+    this.api,
+  });
 
   final String key;
   final Widget Function(ModuleContext ctx) builder;
@@ -20,6 +27,10 @@ class ModuleDef {
   /// user, shown at `/`, and not listed in the menu. At most one module may
   /// set this.
   final bool home;
+
+  /// Page and button codes of the real API that decide this module's
+  /// permissions. `null` for modules that exist only in mock mode.
+  final ModuleApiPermissions? api;
 }
 
 /// What the shell provides to a module. Modules never import each other;

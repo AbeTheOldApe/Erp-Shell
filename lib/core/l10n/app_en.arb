@@ -174,5 +174,10 @@
   "apiMessage2003": "You do not have permission for this action.",
   "apiMessage2004": "The requested resource was not found.",
   "apiMessage2005": "Too many requests. Please wait a moment.",
-  "apiMessage2999": "An unexpected error occurred. Please try again."
+  "apiMessage2999": "An unexpected error occurred. Please try again.",
+
+  "menuGroupDefinitions": "Definitions",
+  "menuLeafCari": "Accounts",
+  "accessMayHaveChanged": "Your permissions may have changed.",
+  "accessMayHaveChangedHint": "A request in this module was denied. Refresh the menu to get your current permissions."
 }

@@ -14,6 +14,7 @@ abstract final class IconRegistry {
     'bar_chart': Icons.bar_chart_outlined,
     'assessment': Icons.assessment_outlined,
     'analytics': Icons.analytics_outlined,
+    'contacts': Icons.contacts_outlined,
     'folder': Icons.folder_outlined,
     'settings': Icons.settings_outlined,
     'manage_accounts': Icons.manage_accounts_outlined,

@@ -134,17 +134,21 @@ Gerçek modun sözleşmesi `docs/api-contract.md`'dir (`menu-schema.md`'deki ilg
 
 **Test edilenler (4.2):** `flutter analyze` temiz, `flutter test` 115 test geçti, `flutter build web --release --dart-define=USE_MOCK=false` derlendi. `test/core/api_session_test.dart` (sahte HTTP adaptörüyle): zarf (200 + `IsSuccessful=false` istisna değil, 4xx/5xx eşleme, 500'de genel metin, bilinmeyen kodda sunucu mesajı); `/auth/*`'ta `X-Requested-With` var, `Authorization` yok; iki eşzamanlı 401 → tek refresh; istek bir kez tekrarlanır, ikinci 401'de tekrar yok; refresh başarısız → `expired`, kullanıcı korunur; access token hiçbir `KeyValueStore`'a yazılmaz, sessionStorage'daki eski kayıt okunmaz; açılışta refresh başarısız → login (kullanıcı seçici yok), başarılı → `/me` ve kabuk; router guard (`/loading`, `from`).
 **Düzeltme (yönlendirme):** `from` yalnızca uygulama içi, `/login` ve `/loading` dışı bir yol ise kullanılır, aksi halde ana sayfa; oturum açıkken `/login`'e (F5 + sessiz refresh dahil) gelen kullanıcı ana sayfaya gider. Çıkışta adres `/login` (from yok).
-**Notlar:** Gerçek API'ye karşı tarayıcıda denendi. Web Locks (`navigator.locks`) kodu derlenir ama VM testlerinde kilitsiz kısmı çalışır. Proaktif yenileme yapılmadı (opsiyoneldi). 403 "Yetkiniz değişmiş olabilir" davranışı 4.3'e taşındı. Gerçek modda menü geçici olarak boş (yalnızca Cockpit sekmesi, 4.3'e kadar); gerçek modda favoriler şimdilik `localStorage`'daki `LocalFavoritesRepository` ile (kabuğun çökmemesi için gerekliydi). `web` paketi eklendi (onaylı).
+**Notlar:** Gerçek API'ye karşı tarayıcıda denendi. Web Locks (`navigator.locks`) kodu derlenir ama VM testlerinde kilitsiz kısmı çalışır. Proaktif yenileme yapılmadı (opsiyoneldi). 403 "Yetkiniz değişmiş olabilir" davranışı 4.3'e taşındı. Gerçek modda menü 4.3'te istemci tanımı + `/me` ile üretilir; gerçek modda favoriler şimdilik `localStorage`'daki `LocalFavoritesRepository` ile (kabuğun çökmemesi için gerekliydi). `web` paketi eklendi (onaylı).
 
 ### 4.3 Menü ve yetkiler
 
-- [ ] İstemci menü tanımı (`moduleKey` + `pageCode`, ARB başlıkları)
-- [ ] `HttpMenuRepository`: `/me` → `Yetkiler.Pages` ile süzme, boş grup gizleme, Cockpit yetkisiz; `badge` her zaman `null`
-- [ ] `ModulePermissions` eşlemesi (sayfa + buton kodu)
-- [ ] Gerçek modda favoriler `localStorage`'da
-- [ ] Açık modülde API 403 dönerse sekmede "Yetkiniz değişmiş olabilir" uyarısı (4.2'den taşındı; ilk gerçek modül isteği 4.4'te geldiği için orada da doğrulanır)
+- [x] İstemci menü tanımı (`moduleKey` + `pageCode`, ARB başlıkları)
+- [x] `HttpMenuRepository`: `/me` → `Yetkiler.Pages` ile süzme, boş grup gizleme, Cockpit yetkisiz; `badge` her zaman `null`
+- [x] `ModulePermissions` eşlemesi (sayfa + buton kodu)
+- [x] Gerçek modda favoriler `localStorage`'da
+- [x] Açık modülde API 403 dönerse sekmede "Yetkiniz değişmiş olabilir" uyarısı ve "Menüyü yenile" eylemi (4.2'den taşındı)
+- [x] Cari için geçici modül sayfası (ad + hesaplanan yetkiler); asıl ekran 4.4'te
 
 **Kabul:** Gerçek modda yalnızca yetkili sayfalar menüde görünür (mock modüller görünmez); buton yetkisi yoksa ilgili butonlar gizlenir. Menü süzme ve yetki eşleme birim testleri.
+
+**Test edilenler (4.3):** `flutter analyze` temiz, `flutter test` 138 test geçti, `flutter build web --release --dart-define=USE_MOCK=false` derlendi. `test/data/client_menu_test.dart`: yetkisiz yaprak gizli, boş grup gizli, bilinmeyen sayfa kodu / yalnız buton kodu hiçbir şey göstermez, mock modüller görünmez, Cockpit yetkisiz açılır, menü yaprağı ile `ModuleDef.api.pageCode` tutarlı; yetki eşleme (buton kodu yoksa bayrak false, başka sayfanın butonu sayılmaz, sayfa yoksa hiçbiri). `test/shell/real_menu_test.dart` (sahte HTTP adaptörüyle, gerçek mod): menüde yalnızca yetkili sayfa ve Cari'nin hesaplanan yetkileri; sayfa yokken URL ile girişte "Yetkiniz yok"; "Menüyü yenile" `/me`yi yeniden çağırır, yetki değişikliği uygulanır, yetkisi kalkan açık sekme "Yetkiniz yok" gösterir; 403 → sekmede "Yetkiniz değişmiş olabilir" bandı ve bandın "Menüyü yenile" eylemi; mock modda `MockMenuRepository` kalır (mevcut mock testleri değişmedi).
+**Notlar:** Gerçek modda menü her çekilişte `/me`yi çağırır (açılışta oturumun `/me`si + menünün `/me`si: iki istek). Menü başlıkları çekildiği andaki dilde üretilir; dil değişince "Menüyü yenile" gerekir. 403 uyarısı, isteği yapan modülü değil o anda etkin sekmeyi işaretler (arka plan sekmeleri zamanlayıcıyla istek atmaz, kural 7). `tools/dev-proxy` WebSocket tüneli önceki adımda yapılmıştı (`d7bfdf1`).
 
 ### 4.4 Cari modülü
 

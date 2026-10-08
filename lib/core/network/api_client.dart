@@ -7,6 +7,19 @@ import 'api_exception.dart';
 import 'api_result.dart';
 import 'auth_interceptor.dart';
 
+/// Counts 403 answers of the API. The shell listens and warns on the tab that
+/// was active ("Yetkiniz değişmiş olabilir").
+class ForbiddenEvents extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void report() => state++;
+}
+
+final forbiddenEventsProvider = NotifierProvider<ForbiddenEvents, int>(
+  ForbiddenEvents.new,
+);
+
 /// Replaces the HTTP adapter of [dioProvider] (tests).
 final httpClientAdapterProvider = Provider<HttpClientAdapter?>((ref) => null);
 
@@ -30,6 +43,7 @@ final dioProvider = Provider<Dio>((ref) {
       dio: dio,
       accessToken: () => ref.read(sessionProvider).session?.accessToken,
       refresh: () => ref.read(sessionProvider.notifier).refreshSession(),
+      onForbidden: () => ref.read(forbiddenEventsProvider.notifier).report(),
     ),
   );
   ref.onDispose(dio.close);

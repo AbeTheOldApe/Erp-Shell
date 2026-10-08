@@ -214,5 +214,10 @@
   "apiMessage2003": "Bu işlem için yetkiniz yok.",
   "apiMessage2004": "İstenen kaynak bulunamadı.",
   "apiMessage2005": "Çok fazla istek gönderildi. Lütfen biraz bekleyin.",
-  "apiMessage2999": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin."
+  "apiMessage2999": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.",
+
+  "menuGroupDefinitions": "Tanımlar",
+  "menuLeafCari": "Cariler",
+  "accessMayHaveChanged": "Yetkiniz değişmiş olabilir.",
+  "accessMayHaveChangedHint": "Bu modüldeki bir istek yetki hatası verdi. Menüyü yenileyerek güncel yetkilerinizi alın."
 }

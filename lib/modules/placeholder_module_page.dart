@@ -62,10 +62,10 @@ class _PlaceholderModulePageState extends State<PlaceholderModulePage> {
             spacing: spacing.sm,
             runSpacing: spacing.sm,
             children: [
-              _PermissionChip(l10n.permissionView, permissions.canView),
-              _PermissionChip(l10n.permissionAdd, permissions.canAdd),
-              _PermissionChip(l10n.permissionEdit, permissions.canEdit),
-              _PermissionChip(l10n.permissionDelete, permissions.canDelete),
+              PermissionChip(l10n.permissionView, permissions.canView),
+              PermissionChip(l10n.permissionAdd, permissions.canAdd),
+              PermissionChip(l10n.permissionEdit, permissions.canEdit),
+              PermissionChip(l10n.permissionDelete, permissions.canDelete),
             ],
           ),
           SizedBox(height: spacing.lg),
@@ -94,8 +94,8 @@ class _PlaceholderModulePageState extends State<PlaceholderModulePage> {
   }
 }
 
-class _PermissionChip extends StatelessWidget {
-  const _PermissionChip(this.label, this.granted);
+class PermissionChip extends StatelessWidget {
+  const PermissionChip(this.label, this.granted, {super.key});
 
   final String label;
   final bool granted;

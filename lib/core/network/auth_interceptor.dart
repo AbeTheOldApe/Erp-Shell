@@ -16,6 +16,7 @@ class AuthInterceptor extends Interceptor {
     required this.dio,
     required this.accessToken,
     required this.refresh,
+    this.onForbidden,
   });
 
   static const requestedWithHeader = 'X-Requested-With';
@@ -27,6 +28,10 @@ class AuthInterceptor extends Interceptor {
 
   /// Single-flight refresh; `false` when the session could not be renewed.
   final Future<bool> Function() refresh;
+
+  /// Called when a non-`/auth/*` request is answered with 403 (the user's
+  /// permissions may have changed).
+  final void Function()? onForbidden;
 
   static bool isAuthPath(String path) => path.contains('/auth/');
 
@@ -48,6 +53,9 @@ class AuthInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     final request = err.requestOptions;
+    if (err.response?.statusCode == 403 && !isAuthPath(request.path)) {
+      onForbidden?.call();
+    }
     final retryable =
         err.response?.statusCode == 401 &&
         !isAuthPath(request.path) &&

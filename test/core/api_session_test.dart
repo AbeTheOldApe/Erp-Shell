@@ -15,70 +15,12 @@ import 'package:erp_shell/core/storage/key_value_store.dart';
 import 'package:erp_shell/core/storage/storage_keys.dart';
 import 'package:erp_shell/shell/login/login_page.dart';
 import 'package:erp_shell/shell/shell_page.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-class _Reply {
-  const _Reply(this.status, this.body);
-
-  factory _Reply.ok(Object? data) => _Reply(200, {
-    'IsSuccessful': true,
-    'Message': 'Islem basarili.',
-    'MessageCode': 200,
-    'Data': data,
-  });
-
-  factory _Reply.fail(int status, int code, String message) => _Reply(status, {
-    'IsSuccessful': false,
-    'Message': message,
-    'MessageCode': code,
-    'Data': null,
-  });
-
-  final int status;
-  final Object? body;
-}
-
-class _Recorded {
-  _Recorded(RequestOptions options)
-    : method = options.method,
-      path = options.path,
-      headers = Map.of(options.headers);
-
-  final String method;
-  final String path;
-  final Map<String, dynamic> headers;
-}
-
-class _FakeAdapter implements HttpClientAdapter {
-  _FakeAdapter(this.handler);
-
-  final FutureOr<_Reply> Function(RequestOptions options) handler;
-  final requests = <_Recorded>[];
-
-  int count(String path) => requests.where((r) => r.path == path).length;
-
-  @override
-  Future<ResponseBody> fetch(
-    RequestOptions options,
-    Stream<List<int>>? requestStream,
-    Future<void>? cancelFuture,
-  ) async {
-    requests.add(_Recorded(options));
-    final reply = await handler(options);
-    return ResponseBody.fromString(
-      jsonEncode(reply.body),
-      reply.status,
-      headers: {
-        Headers.contentTypeHeader: [Headers.jsonContentType],
-      },
-    );
-  }
-
-  @override
-  void close({bool force = false}) {}
-}
+import '../helpers/fake_api.dart';
 
 class _SpyStore extends MemoryKeyValueStore {
   final writes = <String, String>{};
@@ -108,33 +50,33 @@ const _me = {
   },
 };
 
-_Reply _token(String token) =>
-    _Reply.ok({'AccessToken': token, 'ExpiresIn': 900, 'TokenType': 'Bearer'});
+FakeReply tokenReply(String token) =>
+    FakeReply.ok({'AccessToken': token, 'ExpiresIn': 900, 'TokenType': 'Bearer'});
 
 /// A server that issues `t1` on login and `t2` on refresh, and accepts
 /// `/things` only with `t2`.
-FutureOr<_Reply> _server(RequestOptions o, {bool refreshWorks = true}) async {
+FutureOr<FakeReply> _server(RequestOptions o, {bool refreshWorks = true}) async {
   switch (o.path) {
     case '/auth/login':
-      return _token('t1');
+      return tokenReply('t1');
     case '/auth/refresh':
       await Future<void>.delayed(const Duration(milliseconds: 10));
       return refreshWorks
-          ? _token('t2')
-          : _Reply.fail(401, 2003, 'Oturum gecersiz.');
+          ? tokenReply('t2')
+          : FakeReply.fail(401, 2003, 'Oturum gecersiz.');
     case '/me':
-      return _Reply.ok(_me);
+      return FakeReply.ok(_me);
     case '/things':
       return o.headers['Authorization'] == 'Bearer t2'
-          ? _Reply.ok({'Value': 1})
-          : _Reply.fail(401, 2003, 'Oturum yok.');
+          ? FakeReply.ok({'Value': 1})
+          : FakeReply.fail(401, 2003, 'Oturum yok.');
     default:
-      return _Reply.fail(404, 2004, 'Yok.');
+      return FakeReply.fail(404, 2004, 'Yok.');
   }
 }
 
 ProviderContainer _container(
-  _FakeAdapter adapter, {
+  FakeAdapter adapter, {
   MemoryKeyValueStore? local,
   MemoryKeyValueStore? session,
 }) {
@@ -169,8 +111,8 @@ void main() {
     test(
       '200 + IsSuccessful=false is a failure value, not an exception',
       () async {
-        final adapter = _FakeAdapter(
-          (_) => _Reply.fail(200, 1004, 'Kayit bulunamadi.'),
+        final adapter = FakeAdapter(
+          (_) => FakeReply.fail(200, 1004, 'Kayit bulunamadi.'),
         );
         final result = await _container(
           adapter,
@@ -184,7 +126,7 @@ void main() {
     );
 
     test('success parses Data', () async {
-      final adapter = _FakeAdapter((_) => _Reply.ok({'A': 1}));
+      final adapter = FakeAdapter((_) => FakeReply.ok({'A': 1}));
       final result = await _container(adapter)
           .read(apiClientProvider)
           .send<int>(
@@ -205,8 +147,8 @@ void main() {
         500: 2999,
       };
       for (final entry in statuses.entries) {
-        final adapter = _FakeAdapter(
-          (_) => _Reply.fail(entry.key, entry.value, 'm'),
+        final adapter = FakeAdapter(
+          (_) => FakeReply.fail(entry.key, entry.value, 'm'),
         );
         final result = await _container(
           adapter,
@@ -256,7 +198,7 @@ void main() {
 
   group('headers', () {
     test('/auth/* has X-Requested-With and no Authorization', () async {
-      final adapter = _FakeAdapter(_server);
+      final adapter = FakeAdapter(_server);
       final container = _container(adapter);
       await _settled(container);
       await container.read(sessionProvider.notifier).login('esin', 'x');
@@ -272,7 +214,7 @@ void main() {
     });
 
     test('other requests carry the bearer token', () async {
-      final adapter = _FakeAdapter(_server);
+      final adapter = FakeAdapter(_server);
       final container = _container(adapter);
       await _settled(container);
       await container.read(sessionProvider.notifier).login('esin', 'x');
@@ -284,7 +226,7 @@ void main() {
 
   group('session', () {
     test('login loads the user and grants from /me', () async {
-      final container = _container(_FakeAdapter(_server));
+      final container = _container(FakeAdapter(_server));
       await _settled(container);
       await container.read(sessionProvider.notifier).login('esin', 'x');
       final user = container.read(sessionProvider).user!;
@@ -299,7 +241,7 @@ void main() {
       final local = _SpyStore();
       final session = _SpyStore();
       final container = _container(
-        _FakeAdapter(_server),
+        FakeAdapter(_server),
         local: local,
         session: session,
       );
@@ -316,7 +258,7 @@ void main() {
     });
 
     test('two concurrent 401s trigger a single refresh', () async {
-      final adapter = _FakeAdapter(_server);
+      final adapter = FakeAdapter(_server);
       final container = _container(adapter);
       await _settled(container);
       await container.read(sessionProvider.notifier).login('esin', 'x');
@@ -332,8 +274,8 @@ void main() {
     });
 
     test('a request is repeated once; a second 401 is not retried', () async {
-      final adapter = _FakeAdapter((o) {
-        if (o.path == '/things') return _Reply.fail(401, 2003, 'Hep 401');
+      final adapter = FakeAdapter((o) {
+        if (o.path == '/things') return FakeReply.fail(401, 2003, 'Hep 401');
         return _server(o);
       });
       final container = _container(adapter);
@@ -349,7 +291,7 @@ void main() {
 
     test('a failed refresh expires the session and keeps the user', () async {
       var refreshWorks = true;
-      final adapter = _FakeAdapter(
+      final adapter = FakeAdapter(
         (o) => _server(o, refreshWorks: refreshWorks),
       );
       final container = _container(adapter);
@@ -366,8 +308,8 @@ void main() {
     });
 
     test('logout posts /auth/logout and clears the memory', () async {
-      final adapter = _FakeAdapter((o) {
-        if (o.path == '/auth/logout') return _Reply.ok(null);
+      final adapter = FakeAdapter((o) {
+        if (o.path == '/auth/logout') return FakeReply.ok(null);
         return _server(o);
       });
       final container = _container(adapter);
@@ -382,7 +324,7 @@ void main() {
 
   group('startup', () {
     test('failed silent refresh leads to signed out', () async {
-      final adapter = _FakeAdapter((o) => _server(o, refreshWorks: false));
+      final adapter = FakeAdapter((o) => _server(o, refreshWorks: false));
       final container = _container(adapter);
       expect(container.read(sessionProvider).isRestoring, isTrue);
       await _settled(container);
@@ -391,7 +333,7 @@ void main() {
     });
 
     test('successful silent refresh loads /me', () async {
-      final adapter = _FakeAdapter(_server);
+      final adapter = FakeAdapter(_server);
       final container = _container(adapter);
       await _settled(container);
       final state = container.read(sessionProvider);
@@ -412,7 +354,7 @@ void main() {
         }),
       });
       final container = _container(
-        _FakeAdapter((o) => _server(o, refreshWorks: false)),
+        FakeAdapter((o) => _server(o, refreshWorks: false)),
         session: session,
       );
       expect(container.read(sessionProvider).isRestoring, isTrue);
@@ -509,7 +451,7 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    Future<void> pumpReal(WidgetTester tester, _FakeAdapter adapter) async {
+    Future<void> pumpReal(WidgetTester tester, FakeAdapter adapter) async {
       tester.view
         ..devicePixelRatio = 1
         ..physicalSize = const Size(1400, 900);
@@ -535,9 +477,9 @@ void main() {
     testWidgets('refresh fails: the login page, without a demo picker', (
       tester,
     ) async {
-      final adapter = _FakeAdapter(
+      final adapter = FakeAdapter(
         (o) => o.path == '/auth/refresh'
-            ? _Reply.fail(401, 2003, 'Oturum yok.')
+            ? FakeReply.fail(401, 2003, 'Oturum yok.')
             : _server(o),
       );
       await pumpReal(tester, adapter);
@@ -558,9 +500,9 @@ void main() {
         tester.platformDispatcher.defaultRouteNameTestValue = route;
         addTearDown(tester.platformDispatcher.clearDefaultRouteNameTestValue);
       }
-      final adapter = _FakeAdapter((o) {
-        if (o.path == '/auth/refresh') return _token('t2');
-        if (o.path == '/auth/logout') return _Reply.ok(null);
+      final adapter = FakeAdapter((o) {
+        if (o.path == '/auth/refresh') return tokenReply('t2');
+        if (o.path == '/auth/logout') return FakeReply.ok(null);
         return _server(o);
       });
       await pumpReal(tester, adapter);
@@ -625,8 +567,8 @@ void main() {
     testWidgets('refresh succeeds: /me is loaded and the shell is shown', (
       tester,
     ) async {
-      final adapter = _FakeAdapter((o) {
-        if (o.path == '/auth/refresh') return _token('t2');
+      final adapter = FakeAdapter((o) {
+        if (o.path == '/auth/refresh') return tokenReply('t2');
         return _server(o);
       });
       await pumpReal(tester, adapter);
@@ -635,7 +577,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(adapter.count('/auth/refresh'), 1);
-      expect(adapter.count('/me'), 1);
+      // Startup /me plus the menu's /me (the menu is filtered by grants).
+      expect(adapter.count('/me'), 2);
       expect(find.byType(LoginPage), findsNothing);
       expect(find.byType(ShellPage), findsOneWidget);
     });
