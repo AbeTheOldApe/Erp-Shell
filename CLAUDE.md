@@ -20,6 +20,7 @@ Web üzerinde çalışan, Flutter ile yazılan bir **taban (shell) uygulama**. �
 | `docs/ui-behaviors.md` | Ekran ve etkileşim davranışlarının ayrıntılı şartnamesi |
 | `docs/menu-schema.md` | Mock modun sözleşmesi (login, menü JSON), yetki modeli, mock kullanıcılar |
 | `docs/api-contract.md` | **Gerçek API'nin kesin sözleşmesi** (gerçek modda geçerli; Faz 4) |
+| `docs/deployment.md` | Test sunucusuna paketleme ve dağıtım adımları (`tools/build-web.ps1`) |
 | `docs/roadmap.md` | Fazlar ve kabul kriterleri. **Hangi işi yapacağını buradan al.** |
 
 ## Çalışma şekli

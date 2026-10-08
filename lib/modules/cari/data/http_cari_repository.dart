@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_result.dart';
 import '../../../shared/app_data_grid/grid_query.dart';
@@ -68,15 +66,7 @@ class HttpCariRepository implements CariRepository {
   Future<ApiResult<Cari>> get(int id) => _client.send<Cari>(
     'GET',
     '/tml/cari/$id',
-    parse: (data) {
-      final map = data! as Map<String, dynamic>;
-      if (kDebugMode) {
-        // Field NAMES only, never values: used to verify
-        // docs/api-contract.md §6.2 against the real answer.
-        debugPrint('GET /tml/cari/$id fields: ${(map.keys.toList()..sort())}');
-      }
-      return _cari(map);
-    },
+    parse: (data) => _cari(data! as Map<String, dynamic>),
   );
 
   @override

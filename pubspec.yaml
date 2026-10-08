@@ -30,3 +30,14 @@ flutter:
   generate: true
   assets:
     - assets/mock/
+    - assets/fonts/Roboto/LICENSE.txt
+
+  # Bundled so the app never downloads a font (Roboto covers Turkish).
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto/Roboto-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Roboto/Roboto-Bold.ttf
+          weight: 700

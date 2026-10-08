@@ -14,6 +14,7 @@ abstract final class AppTheme {
       brightness: brightness,
     );
     return ThemeData(
+      fontFamily: 'Roboto',
       colorScheme: scheme,
       useMaterial3: true,
       visualDensity: VisualDensity.standard,

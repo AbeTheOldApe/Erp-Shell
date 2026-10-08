@@ -212,7 +212,8 @@ Cevap:
 `Data`: listedeki alanlar + formdaki bütün alanlar. Yoksa ya da başka tenant'a aitse `IsSuccessful: false`,
 `1004`.
 
-Shell'in okuduğu alanlar (Cari formu; eksik alan boş/`false` kabul edilir, bilinmeyen alan yok sayılır):
+`GET /tml/cari/5563` gerçek cevabının alan adları (test ortamında doğrulandı; Cari formunun hepsi bu
+alanlarla doldurulur, eksik alan boş/`false` kabul edilir, bilinmeyen alan yok sayılır):
 
 | Alan | Tip |
 |---|---|
@@ -224,9 +225,8 @@ Shell'in okuduğu alanlar (Cari formu; eksik alan boş/`false` kabul edilir, bil
 | `Status` (`'Valid'` = aktif) | string |
 | `NetsisBagliMi` | bool |
 
-**Doğrulama bekliyor:** bu liste §6.1/§6.3'ten türetildi. Debug modda (`flutter run`) her `GET /tml/cari/{id}`
-tarayıcı konsoluna yalnızca alan ADLARINI yazar (`GET /tml/cari/5563 fields: [...]`, değer yok); gerçek
-cevaptaki adlarla bu tablo karşılaştırılıp güncellenecek.
+Boş `CariKodu`, `VergiNo` ve `TcKimlikNo` (`""`) birden çok kayıtta kabul edilir; `1201`/`1202` yalnızca
+dolu değerlerde üretilir.
 
 ### 6.3 `POST /api/v1/tml/cari` — kaydet (yetki: `CariMain` + `KAYDET`)
 
@@ -293,9 +293,11 @@ altındaki Node aracı tek bir adresten hem shell'i hem API'yi sunar:
 
 - Build: `flutter build web --release --no-web-resources-cdn --dart-define=USE_MOCK=false`
   (`--no-web-resources-cdn`: CanvasKit gstatic'ten değil build'den yüklenir; sunucunun CSP'si dış kaynağa izin vermez).
-- Fontlar pubspec'e gömülür; tarayıcının Google Fonts'tan font indirmesine güvenilmez.
+- Fontlar (Roboto) pubspec'e gömülüdür; `web/flutter_bootstrap.js` yedek font adresini kendi origin'ine çevirir,
+  böylece çalışma anında hiçbir dış adrese istek gitmez.
 - Hedef: sunucuda `C:\OptiCodeWeb\test\web`. Kopyalarken sunucudaki `web.config` **korunur**
-  (`robocopy <build\web> C:\OptiCodeWeb\test\web /MIR /XF web.config`). Shell'in kendi `web.config`'i yoktur;
-  IIS kuralları (SPA yönlendirmesi, `/api` proxy, güvenlik başlıkları) sunucuda hazırdır.
+  (`robocopy <build\web> C:\OptiCodeWeb\test\web /MIR /XF web.config`). Repodaki `web/web.config` yalnızca bir örnektir ve pakete
+  **konmaz**; IIS kuralları (SPA yönlendirmesi, `/api` proxy, güvenlik başlıkları) sunucuda hazırdır.
+- Paketleme ve adımlar: `tools/build-web.ps1`, `docs/deployment.md`.
 - `index.html` ve `flutter_bootstrap.js` IIS tarafından `no-cache` ile sunulur.
 - CSP şu an `Report-Only`; tarayıcı konsolunda CSP ihlali olmamalıdır.

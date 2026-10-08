@@ -160,15 +160,20 @@ Gerçek modun sözleşmesi `docs/api-contract.md`'dir (`menu-schema.md`'deki ilg
 **Kabul:** Gerçek API ile cari listele/ara/filtrele, ekle, güncelle, sil; alan hataları ilgili alanda görünür. Repository ve eşleme testleri.
 
 **Test edilenler (4.4):** `flutter analyze` temiz, `flutter test` tümü geçti. `test/modules/cari_test.dart`: `GridQuery` → sorgu parametreleri (sayfa/boyut, `Arama`, rol ve pasif filtreleri; işaretsiz/bilinmeyen filtre ve sıralama gönderilmez; `PageSize` ≤ 200, `Arama` ≤ 100); `MessageCode` → alan hatası (1002 ünvan, 1201 kod, 1202 vergi no + TC, 1004 listeye dön, 1005 yenile, 1203–1205 bilgi, bilinmeyen kodda sunucu mesajı); mock repository (60 kayıt, pasif/Netsis, Türkçe aramada büyük/küçük harf); ekranlar: liste → detay → kaydet → sil (mock), yeni kayıt doğrulaması ve oluşturma, sunucu kurallarının alan altında görünmesi ve düzenleyince silinmesi, `NetsisBagliMi` → salt okunur + Kaydet/Sil gizli + bilgi bandı, olmayan kayıt, yetkiye göre Yeni/Kaydet/Sil. `test/modules/cari_http_test.dart` (sahte HTTP adaptörü): PascalCase eşleme, istek biçimi (yeni kayıtta `CariId` yok, salt okunur alanlar gönderilmez), 1201 ve 403 başarısızlık değeri. `test/shared/filter_bool_test.dart`: `BoolFilterField` ve ayarlanabilir debounce.
-**Notlar:** `AppDataGrid`'e eklenenler: `AppGridColumn.cell` (hücrede widget, ör. Netsis ikonu), `FilterBar`'a `BoolFilterField` ve `debounce`; sıralama için yeni seçenek gerekmedi (`sortable: false`). Mock modda menüde Cari yok (mock menüler değişmedi); `MockCariRepository` yalnızca `USE_MOCK=true` iken seçilir ve testlerde kullanılır. Liste CSV dışa aktarımı Cari'de yok (API `PageSize` ≤ 200). `GET /tml/cari/{id}` gerçek alan listesi henüz doğrulanmadı: debug konsol günlüğü hazır, `api-contract.md` §6.2'deki liste "doğrulama bekliyor" olarak işaretli. Boş `VergiNo`/`CariKodu` gönderiminin 1201/1202 üretip üretmediği gerçek API'de denenecek.
+**Notlar:** `AppDataGrid`'e eklenenler: `AppGridColumn.cell` (hücrede widget, ör. Netsis ikonu), `FilterBar`'a `BoolFilterField` ve `debounce`; sıralama için yeni seçenek gerekmedi (`sortable: false`). Mock modda menüde Cari yok (mock menüler değişmedi); `MockCariRepository` yalnızca `USE_MOCK=true` iken seçilir ve testlerde kullanılır. Liste CSV dışa aktarımı Cari'de yok (API `PageSize` ≤ 200). 
+**Gerçek API ile doğrulandı (tarayıcı):** liste (175 kayıt, pasifler dahil 212), arama, rol ve pasif filtreleri, sayfalama, yeni kayıt, aynı `CariKodu` ile 1201 alan hatası, boş `CariKodu`/`VergiNo` ile iki kayıt (1201/1202 üretmiyor), güncelleme, kaydedilmemiş değişiklik uyarısı, silme. `GET /tml/cari/{id}` alan listesi gerçek cevaba göre `api-contract.md` §6.2'ye işlendi; alan adı günlüğü kaldırıldı.
 
 ### 4.5 Test sunucusuna dağıtım ve uçtan uca doğrulama
 
-- [ ] `flutter build web --release --no-web-resources-cdn --dart-define=USE_MOCK=false`; fontlar pubspec'e gömülü
+- [x] `flutter build web --release --no-web-resources-cdn --dart-define=USE_MOCK=false`; fontlar pubspec'e gömülü (Roboto, `assets/fonts/Roboto/`; yedek font adresi `web/flutter_bootstrap.js` ile kendi origin'ine çevrildi)
+- [x] `tools/build-web.ps1`: build, çıktı denetimi (config.json, base href, dış adres), `dist\erp-shell-web-<commit>.zip` (web.config konmaz)
+- [x] Dağıtım adımları: `docs/deployment.md`
 - [ ] `robocopy <build\web> C:\OptiCodeWeb\test\web /MIR /XF web.config`
 - [ ] `https://test.opticode.com.tr` üzerinde uçtan uca: giriş, F5, yenileme, çıkış, Cari akışı; konsolda CSP ihlali yok
 
 **Kabul:** Test ortamında demo akışının tamamı çalışır; UI kodunda değişiklik gerekmemiştir.
+
+**Hazırlık notları (4.5):** Build çıktısında `config.json` var, `index.html` `<base href="/">` içeriyor (betik denetler). Motorun gstatic varsayılan adresleri (`flutter.js`, `flutter_bootstrap.js`, `main.dart.js` içinde yalnızca sabit metin) `useLocalCanvasKit` ve `fontFallbackBaseUrl` ayarlarıyla geçersiz; betik bunları "info" olarak listeler. Çalışma anında ağ isteği tarayıcıda henüz doğrulanmadı (otomasyon tarayıcısı bağlı değildi): sunucuda Ağ sekmesinde `gstatic`/`googleapis` isteği olmadığını bir kez kontrol edin.
 
 **Kararlar (Faz 4):** Token depolama yeniden değerlendirmesi karara bağlandı: access token bellekte, refresh token `httpOnly` cookie (bkz. `CLAUDE.md`).
 
