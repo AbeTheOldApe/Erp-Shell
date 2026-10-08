@@ -29,6 +29,10 @@ function forward(req, res, { transport, host, port, rewriteHeaders }) {
     if (!res.headersSent) res.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' });
     res.end(`Bad gateway: ${err.message}`);
   });
+  // A browser that goes away (reload, closed tab) must not leave its upstream
+  // connection behind: the Flutter dev server keeps counting such clients and
+  // hot restart then waits for answers that never come.
+  res.on('close', () => upstream.destroy());
   req.pipe(upstream);
 }
 
@@ -55,19 +59,34 @@ const server = http.createServer((req, res) => {
   });
 });
 
-// Flutter's dev server uses a WebSocket for hot reload/debug; tunnel upgrades.
+// Flutter's dev server uses a WebSocket for hot reload/hot restart; every
+// upgrade request outside /api is tunnelled to it (the API needs none).
 server.on('upgrade', (req, socket, head) => {
+  if (req.url === '/api' || req.url.startsWith('/api/')) {
+    socket.end('HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n');
+    return;
+  }
+  console.log(`[proxy] upgrade ${req.url} -> ${APP_HOST}:${APP_PORT}`);
+  socket.setNoDelay(true);
   const upstream = net.connect(APP_PORT, APP_HOST, () => {
+    upstream.setNoDelay(true);
     const lines = [`${req.method} ${req.url} HTTP/${req.httpVersion}`];
     for (let i = 0; i < req.rawHeaders.length; i += 2) {
       lines.push(`${req.rawHeaders[i]}: ${req.rawHeaders[i + 1]}`);
     }
     upstream.write(lines.join('\r\n') + '\r\n\r\n');
     if (head && head.length) upstream.write(head);
-    socket.pipe(upstream).pipe(socket);
+    socket.pipe(upstream);
+    upstream.pipe(socket);
   });
-  upstream.on('error', () => socket.destroy());
+  // Either side closing closes the other, so no half-open tunnels remain.
+  upstream.on('error', (err) => {
+    console.error(`[proxy] upgrade ${req.url}: ${err.message}`);
+    socket.destroy();
+  });
+  upstream.on('close', () => socket.destroy());
   socket.on('error', () => upstream.destroy());
+  socket.on('close', () => upstream.destroy());
 });
 
 server.listen(LISTEN_PORT, 'localhost', () => {
