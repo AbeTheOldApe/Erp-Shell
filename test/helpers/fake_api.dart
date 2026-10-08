@@ -30,11 +30,15 @@ class RecordedRequest {
   RecordedRequest(RequestOptions options)
     : method = options.method,
       path = options.path,
-      headers = Map.of(options.headers);
+      headers = Map.of(options.headers),
+      query = Map.of(options.queryParameters),
+      body = options.data;
 
   final String method;
   final String path;
   final Map<String, dynamic> headers;
+  final Map<String, dynamic> query;
+  final Object? body;
 }
 
 /// HTTP adapter that answers from [handler] and records the requests.

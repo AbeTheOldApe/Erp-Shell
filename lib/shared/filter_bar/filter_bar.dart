@@ -35,6 +35,11 @@ class DateRangeFilterField extends FilterFieldDef {
   const DateRangeFilterField(super.field, super.label);
 }
 
+/// A checkbox; when ticked it is sent as `eq` `true`, otherwise not at all.
+class BoolFilterField extends FilterFieldDef {
+  const BoolFilterField(super.field, super.label);
+}
+
 /// Filters above a grid. Medium/expanded: a row of fields that apply as you
 /// type. Compact: a "Filtre (n)" button that opens a bottom sheet with an
 /// "Uygula" button.
@@ -43,10 +48,14 @@ class FilterBar extends StatefulWidget {
     required this.fields,
     required this.onChanged,
     this.initial = const [],
+    this.debounce = const Duration(milliseconds: 400),
     super.key,
   });
 
   final List<FilterFieldDef> fields;
+
+  /// Delay before typing in a text field applies the filter.
+  final Duration debounce;
   final ValueChanged<List<GridFilter>> onChanged;
   final List<GridFilter> initial;
 
@@ -69,7 +78,7 @@ class _FilterBarState extends State<FilterBar> {
     _debounce?.cancel();
     if (debounce) {
       _debounce = Timer(
-        const Duration(milliseconds: 400),
+        widget.debounce,
         () => widget.onChanged(_values.toFilters(widget.fields)),
       );
     } else {
@@ -247,10 +256,31 @@ abstract final class _FilterInputs {
               items: [
                 DropdownMenuItem<String?>(child: Text(l10n.filterAll)),
                 for (final option in def.options.entries)
-                  DropdownMenuItem(value: option.key, child: Text(option.value)),
+                  DropdownMenuItem(
+                    value: option.key,
+                    child: Text(option.value),
+                  ),
               ],
               onChanged: (value) => onChanged(
                 values.copyWith(select: {...values.select, def.field: value}),
+              ),
+            ),
+          ),
+        ];
+      case BoolFilterField():
+        return [
+          sized(
+            CheckboxListTile(
+              key: ValueKey('filter-${def.field}'),
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Text(def.label),
+              value: values.flags[def.field] ?? false,
+              onChanged: (checked) => onChanged(
+                values.copyWith(
+                  flags: {...values.flags, def.field: checked ?? false},
+                ),
               ),
             ),
           ),
@@ -380,6 +410,7 @@ class _FilterValues {
     this.text = const {},
     this.select = const {},
     this.dates = const {},
+    this.flags = const {},
   });
 
   /// Rebuilds input values from filters (e.g. restored ones).
@@ -387,10 +418,13 @@ class _FilterValues {
     final text = <String, String>{};
     final select = <String, String?>{};
     final dates = <String, (DateTime?, DateTime?)>{};
+    final flags = <String, bool>{};
     for (final f in filters) {
       switch (f.op) {
         case FilterOp.contains:
           text[f.field] = '${f.value ?? ''}';
+        case FilterOp.eq when f.value is bool:
+          flags[f.field] = f.value! as bool;
         case FilterOp.eq:
           select[f.field] = f.value as String?;
         case FilterOp.gte:
@@ -401,21 +435,29 @@ class _FilterValues {
           dates[f.field] = (range.$1, DateTime.tryParse('${f.value}'));
       }
     }
-    return _FilterValues(text: text, select: select, dates: dates);
+    return _FilterValues(
+      text: text,
+      select: select,
+      dates: dates,
+      flags: flags,
+    );
   }
 
   final Map<String, String> text;
   final Map<String, String?> select;
   final Map<String, (DateTime?, DateTime?)> dates;
+  final Map<String, bool> flags;
 
   _FilterValues copyWith({
     Map<String, String>? text,
     Map<String, String?>? select,
     Map<String, (DateTime?, DateTime?)>? dates,
+    Map<String, bool>? flags,
   }) => _FilterValues(
     text: text ?? this.text,
     select: select ?? this.select,
     dates: dates ?? this.dates,
+    flags: flags ?? this.flags,
   );
 
   List<GridFilter> toFilters(List<FilterFieldDef> fields) {
@@ -433,6 +475,10 @@ class _FilterValues {
           SelectFilterField() => [
             if (select[def.field] != null)
               GridFilter(def.field, FilterOp.eq, select[def.field]),
+          ],
+          BoolFilterField() => [
+            if (flags[def.field] ?? false)
+              GridFilter(def.field, FilterOp.eq, true),
           ],
           DateRangeFilterField() => [
             if (dates[def.field]?.$1 case final from?)

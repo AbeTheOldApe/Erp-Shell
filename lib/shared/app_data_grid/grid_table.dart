@@ -87,6 +87,9 @@ class _GridTableState<T> extends State<GridTable<T>> {
       width: prefs.widths[column.field] ?? column.width,
       hide: prefs.hidden.contains(column.field),
       enableSorting: column.sortable,
+      renderer: column.cell == null
+          ? null
+          : (rendererContext) => column.cell!(rendererContext.row.data),
       enableFilterMenuItem: false,
       enableEditingMode: false,
       textAlign: align,

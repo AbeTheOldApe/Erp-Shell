@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import '../../core/utils/formatters.dart';
 
@@ -18,6 +18,7 @@ class AppGridColumn<T> {
     this.sortable = true,
     this.showInCard = true,
     this.cardTitle = false,
+    this.cell,
   });
 
   /// Field name used in sort/filter requests and column preferences.
@@ -36,6 +37,10 @@ class AppGridColumn<T> {
   /// Used as the card's heading on phones (first such column).
   final bool cardTitle;
 
+  /// Widget shown in the table cell instead of the text (e.g. an icon).
+  /// [value] still provides the text for cards, copying and CSV export.
+  final Widget Function(T row)? cell;
+
   bool get alignEnd =>
       kind == GridColumnKind.number ||
       kind == GridColumnKind.decimal ||
@@ -47,8 +52,8 @@ class AppGridColumn<T> {
     if (raw == null) return '';
     return switch (kind) {
       GridColumnKind.date when raw is DateTime => Formatters.date(raw),
-      GridColumnKind.money || GridColumnKind.decimal when raw is num =>
-        Formatters.number(raw),
+      GridColumnKind.money ||
+      GridColumnKind.decimal when raw is num => Formatters.number(raw),
       GridColumnKind.number when raw is num => Formatters.integer(raw),
       _ => '$raw',
     };

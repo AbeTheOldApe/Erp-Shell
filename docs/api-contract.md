@@ -209,9 +209,24 @@ Cevap:
 
 ### 6.2 `GET /api/v1/tml/cari/{CariId}` — tekil (yetki: `CariMain`)
 
-`Data`: listedeki alanlar + formdaki bütün alanlar (`WebAdresi`, `FaksNo`, `OtomatikCariEkstreYollansinMi`
-vb.). Yoksa ya da başka tenant'a aitse `IsSuccessful: false`, `1004`. Alan listesini ilk entegrasyonda
-gerçek cevaptan doğrula.
+`Data`: listedeki alanlar + formdaki bütün alanlar. Yoksa ya da başka tenant'a aitse `IsSuccessful: false`,
+`1004`.
+
+Shell'in okuduğu alanlar (Cari formu; eksik alan boş/`false` kabul edilir, bilinmeyen alan yok sayılır):
+
+| Alan | Tip |
+|---|---|
+| `CariId` | int |
+| `CariKodu`, `Cari`, `CariUnvani`, `CariKisaUnvani` | string |
+| `WebAdresi`, `EPostaAdresi`, `TelefonNo`, `FaksNo` | string |
+| `VergiDairesi`, `VergiNo`, `TcKimlikNo` | string |
+| `CarininMusteriRoluVarMi`, `CarininUrunTedarikcisiRoluVarMi`, `CarininHizmetTedarikcisiRoluVarMi`, `OtomatikCariEkstreYollansinMi` | bool |
+| `Status` (`'Valid'` = aktif) | string |
+| `NetsisBagliMi` | bool |
+
+**Doğrulama bekliyor:** bu liste §6.1/§6.3'ten türetildi. Debug modda (`flutter run`) her `GET /tml/cari/{id}`
+tarayıcı konsoluna yalnızca alan ADLARINI yazar (`GET /tml/cari/5563 fields: [...]`, değer yok); gerçek
+cevaptaki adlarla bu tablo karşılaştırılıp güncellenecek.
 
 ### 6.3 `POST /api/v1/tml/cari` — kaydet (yetki: `CariMain` + `KAYDET`)
 

@@ -152,12 +152,15 @@ Gerçek modun sözleşmesi `docs/api-contract.md`'dir (`menu-schema.md`'deki ilg
 
 ### 4.4 Cari modülü
 
-- [ ] Liste (`Arama`, rol ve pasif filtreleri, sayfalama; sunucu sıralaması yok, sütun sıralaması kapalı)
-- [ ] Detay formu, kaydet/sil; `NetsisBagliMi` olan cari salt okunur (Kaydet/Sil gizli)
-- [ ] `MessageCode` eşlemeleri (1002, 1004, 1005, 1201–1205) ARB'ye
-- [ ] `CariRepository`: mock ve http uygulamaları
+- [x] Liste (`Arama`, rol ve pasif filtreleri, sayfalama; sunucu sıralaması yok, sütun sıralaması kapalı)
+- [x] Detay formu, kaydet/sil; `NetsisBagliMi` olan cari salt okunur (Kaydet/Sil gizli)
+- [x] `MessageCode` eşlemeleri (1002, 1004, 1005, 1201–1205) ARB'ye
+- [x] `CariRepository`: mock ve http uygulamaları
 
 **Kabul:** Gerçek API ile cari listele/ara/filtrele, ekle, güncelle, sil; alan hataları ilgili alanda görünür. Repository ve eşleme testleri.
+
+**Test edilenler (4.4):** `flutter analyze` temiz, `flutter test` tümü geçti. `test/modules/cari_test.dart`: `GridQuery` → sorgu parametreleri (sayfa/boyut, `Arama`, rol ve pasif filtreleri; işaretsiz/bilinmeyen filtre ve sıralama gönderilmez; `PageSize` ≤ 200, `Arama` ≤ 100); `MessageCode` → alan hatası (1002 ünvan, 1201 kod, 1202 vergi no + TC, 1004 listeye dön, 1005 yenile, 1203–1205 bilgi, bilinmeyen kodda sunucu mesajı); mock repository (60 kayıt, pasif/Netsis, Türkçe aramada büyük/küçük harf); ekranlar: liste → detay → kaydet → sil (mock), yeni kayıt doğrulaması ve oluşturma, sunucu kurallarının alan altında görünmesi ve düzenleyince silinmesi, `NetsisBagliMi` → salt okunur + Kaydet/Sil gizli + bilgi bandı, olmayan kayıt, yetkiye göre Yeni/Kaydet/Sil. `test/modules/cari_http_test.dart` (sahte HTTP adaptörü): PascalCase eşleme, istek biçimi (yeni kayıtta `CariId` yok, salt okunur alanlar gönderilmez), 1201 ve 403 başarısızlık değeri. `test/shared/filter_bool_test.dart`: `BoolFilterField` ve ayarlanabilir debounce.
+**Notlar:** `AppDataGrid`'e eklenenler: `AppGridColumn.cell` (hücrede widget, ör. Netsis ikonu), `FilterBar`'a `BoolFilterField` ve `debounce`; sıralama için yeni seçenek gerekmedi (`sortable: false`). Mock modda menüde Cari yok (mock menüler değişmedi); `MockCariRepository` yalnızca `USE_MOCK=true` iken seçilir ve testlerde kullanılır. Liste CSV dışa aktarımı Cari'de yok (API `PageSize` ≤ 200). `GET /tml/cari/{id}` gerçek alan listesi henüz doğrulanmadı: debug konsol günlüğü hazır, `api-contract.md` §6.2'deki liste "doğrulama bekliyor" olarak işaretli. Boş `VergiNo`/`CariKodu` gönderiminin 1201/1202 üretip üretmediği gerçek API'de denenecek.
 
 ### 4.5 Test sunucusuna dağıtım ve uçtan uca doğrulama
 

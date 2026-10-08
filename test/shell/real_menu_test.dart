@@ -33,6 +33,8 @@ void main() {
           return tokenReply('t');
         case '/me':
           return FakeReply.ok(me);
+        case '/tml/cari':
+          return FakeReply.ok({'Items': [], 'TotalCount': 0});
         case '/things':
           return thingsStatus == 403
               ? FakeReply.fail(403, 2003, 'Yetki yok.')
@@ -76,36 +78,21 @@ void main() {
     await settle(tester);
   }
 
-  testWidgets(
-    'only granted pages are in the menu; Cari shows its permissions',
-    (tester) async {
-      await pumpReal(tester);
-      expect(find.text('Tanımlar'), findsOneWidget);
-      await tester.tap(find.text('Tanımlar'));
-      await tester.pumpAndSettle();
-      expect(find.text('Cariler'), findsOneWidget);
-      expect(find.text('Siparişler'), findsNothing);
+  testWidgets('only granted pages are in the menu; Cari offers Yeni', (
+    tester,
+  ) async {
+    await pumpReal(tester);
+    expect(find.text('Tanımlar'), findsOneWidget);
+    await tester.tap(find.text('Tanımlar'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cariler'), findsOneWidget);
+    expect(find.text('Siparişler'), findsNothing);
 
-      await tester.tap(find.text('Cariler'));
-      await settle(tester);
-      expect(find.text('Görüntüleme'), findsOneWidget);
-      // KAYDET gives add and edit; no SIL, so no delete.
-      final chips = tester.widgetList<Chip>(find.byType(Chip)).toList();
-      final granted = [
-        for (final chip in chips)
-          (
-            (chip.label as Text).data,
-            (chip.avatar! as Icon).icon == Icons.check_circle_outline,
-          ),
-      ];
-      expect(granted, [
-        ('Görüntüleme', true),
-        ('Ekleme', true),
-        ('Düzenleme', true),
-        ('Silme', false),
-      ]);
-    },
-  );
+    await tester.tap(find.text('Cariler'));
+    await settle(tester);
+    // KAYDET gives add (and edit): the list offers Yeni.
+    expect(find.text('Yeni'), findsOneWidget);
+  });
 
   testWidgets(
     'without the page the menu has no groups; the URL says no access',
@@ -125,24 +112,14 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cariler'));
     await settle(tester);
-    expect(find.text('Silme'), findsOneWidget);
+    expect(find.text('Yeni'), findsOneWidget);
 
     final before = adapter.count('/me');
-    me = meData(
-      pages: ['CariMain'],
-      buttons: {
-        'CariMain': ['KAYDET', 'SIL'],
-      },
-    );
+    // The button right is taken away: still visible, but no "Yeni".
+    me = meData(pages: ['CariMain']);
     await refreshFromUserMenu(tester);
     expect(adapter.count('/me'), before + 1);
-    final chips = tester.widgetList<Chip>(find.byType(Chip)).toList();
-    expect(
-      chips.every(
-        (c) => (c.avatar! as Icon).icon == Icons.check_circle_outline,
-      ),
-      isTrue,
-    );
+    expect(find.text('Yeni'), findsNothing);
 
     // The page is revoked: the menu loses Cari and the open tab says so.
     me = meData();

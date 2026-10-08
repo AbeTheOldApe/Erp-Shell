@@ -10,10 +10,17 @@ void showSuccess(BuildContext context, String message) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 3),
-      ),
+      SnackBar(content: Text(message), duration: const Duration(seconds: 3)),
+    );
+}
+
+/// Neutral message that stays a little longer than [showSuccess] (e.g. a rule
+/// that stopped an action).
+void showInfo(BuildContext context, String message) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 6)),
     );
 }
 
