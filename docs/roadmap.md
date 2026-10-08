@@ -112,6 +112,8 @@ Fazları sırayla uygula. Bir fazı bitirince kutuları işaretle. Ayrıntılı 
 
 ## Faz 4: Gerçek API
 
+**Durum: tamamlandı (2026-10-08).** 4.1–4.5 test ortamında (`https://test.opticode.com.tr`) doğrulandı.
+
 Gerçek modun sözleşmesi `docs/api-contract.md`'dir (`menu-schema.md`'deki ilgili maddeler gerçek mod için geçersiz). Shell API'ye uyar; çeviri `Http*` repository'lerindedir, UI değişmez. Mock modu eskisi gibi çalışmaya devam etmelidir.
 
 ### 4.1 Hazırlık: dokümanlar, config.json, geliştirme proxy'si
@@ -168,10 +170,10 @@ Gerçek modun sözleşmesi `docs/api-contract.md`'dir (`menu-schema.md`'deki ilg
 - [x] `flutter build web --release --no-web-resources-cdn --dart-define=USE_MOCK=false`; fontlar pubspec'e gömülü (Roboto, `assets/fonts/Roboto/`; yedek font adresi `web/flutter_bootstrap.js` ile kendi origin'ine çevrildi)
 - [x] `tools/build-web.ps1`: build, çıktı denetimi (config.json, base href, dış adres), `dist\erp-shell-web-<commit>.zip` (web.config konmaz)
 - [x] Dağıtım adımları: `docs/deployment.md`
-- [ ] `robocopy <build\web> C:\OptiCodeWeb\test\web /MIR /XF web.config`
-- [ ] `https://test.opticode.com.tr` üzerinde uçtan uca: giriş, F5, yenileme, çıkış, Cari akışı; konsolda CSP ihlali yok
+- [x] `robocopy <build\web> C:\OptiCodeWeb\test\web /MIR /XF web.config` (sunucudaki `web.config` korundu)
+- [x] `https://test.opticode.com.tr` üzerinde uçtan uca: giriş, F5, yenileme, çıkış, Cari akışı; konsolda CSP ihlali ve font 404'ü yok, Ağ sekmesinde gstatic/googleapis isteği yok
 
-**Kabul:** Test ortamında demo akışının tamamı çalışır; UI kodunda değişiklik gerekmemiştir.
+**Kabul:** Test ortamında demo akışının tamamı çalışır; UI kodunda değişiklik gerekmemiştir. **Sağlandı:** sunucuda giriş, F5, çıkış ve Cari akışı çalışıyor.
 
 **Test sunucusunda bulunanlar (4.5):** Giriş, Cari akışı, F5 (`/m/cari` SPA yönlendirmesi dahil), çıkış çalışıyor; Ağ sekmesinde gstatic/googleapis isteği yok. Açılıştaki `POST /auth/refresh` 401 (oturum yokken) beklenen davranıştır. İki konsol sorunu çıktı ve düzeltildi:
 - [x] **CSP (Report-Only, ileride engelleme):** `index.html`'deki iki satır içi script (bağlam menüsü + `beforeunload` köprüsü, ilk kare dinleyicisi) `web/shell_boot.js` dosyasına taşındı; davranış aynı. Satır içi olay özniteliği yok. `tools/build-web.ps1` çıktıda satır içi script / olay özniteliği / `javascript:` bulursa hata verir ve zip yazmaz. (Satır içi `<style>` bloğu duruyor; CSP `style-src` kısıtlarsa ayrıca ele alınacak.)
