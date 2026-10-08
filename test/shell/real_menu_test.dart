@@ -34,7 +34,7 @@ void main() {
         case '/me':
           return FakeReply.ok(me);
         case '/tml/cari':
-          return FakeReply.ok({'Items': [], 'TotalCount': 0});
+          return FakeReply.ok({'Items': <Object?>[], 'TotalCount': 0});
         case '/things':
           return thingsStatus == 403
               ? FakeReply.fail(403, 2003, 'Yetki yok.')

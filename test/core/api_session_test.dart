@@ -41,7 +41,7 @@ const _me = {
     'Email': 'e@x.com',
   },
   'Ortam': 'Test',
-  'Menu': [],
+  'Menu': <Object?>[],
   'Yetkiler': {
     'Pages': ['CariMain'],
     'Buttons': {

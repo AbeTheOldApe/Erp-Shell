@@ -16,6 +16,7 @@ import 'package:erp_shell/shared/app_data_grid/grid_query.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:trina_grid/trina_grid.dart';
 
 import '../helpers/shell_harness.dart';
 
@@ -59,9 +60,11 @@ Future<_FakeContext> _pump(
   WidgetTester tester,
   MockCariRepository repository, {
   ModulePermissions permissions = _all,
+  // Default: a phone-sized window (cards, one form column, tall enough for
+  // the form).
+  Size size = const Size(500, 2600),
 }) async {
-  // A phone-sized window: cards, one form column; tall enough for the form.
-  setWindowSize(tester, const Size(500, 2600));
+  setWindowSize(tester, size);
   final ctx = _FakeContext(permissions);
   await tester.pumpWidget(
     ProviderScope(
@@ -263,6 +266,19 @@ void main() {
   });
 
   group('screens', () {
+    testWidgets('expanded: the table draws the Netsis icon column', (
+      tester,
+    ) async {
+      await _pump(tester, MockCariRepository(), size: const Size(2000, 900));
+      // TrinaGrid (table) rather than cards, with real rows. Wide enough for
+      // every column: the grid only builds the columns in view.
+      expect(find.byType(TrinaGrid), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      expect(find.text('Bora Tekstil Ltd. Şti.'), findsOneWidget);
+      // Row 9 (and every 9th) is linked to Netsis: the link icon is drawn.
+      expect(find.byIcon(Icons.link), findsWidgets);
+    });
+
     testWidgets('list -> detail -> save -> delete with the mock repository', (
       tester,
     ) async {

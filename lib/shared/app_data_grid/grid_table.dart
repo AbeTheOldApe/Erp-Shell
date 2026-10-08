@@ -71,8 +71,10 @@ class _GridTableState<T> extends State<GridTable<T>> {
     ];
   }
 
-  static TrinaColumn _buildColumn(
-    AppGridColumn<dynamic> column,
+  /// Not static and not `AppGridColumn<dynamic>`: reading a typed callback
+  /// such as `cell` through the dynamic type fails at run time.
+  TrinaColumn _buildColumn(
+    AppGridColumn<T> column,
     GridPreferences prefs,
     GridSort? sort,
   ) {
@@ -89,7 +91,7 @@ class _GridTableState<T> extends State<GridTable<T>> {
       enableSorting: column.sortable,
       renderer: column.cell == null
           ? null
-          : (rendererContext) => column.cell!(rendererContext.row.data),
+          : (rendererContext) => column.cell!(rendererContext.row.data as T),
       enableFilterMenuItem: false,
       enableEditingMode: false,
       textAlign: align,
