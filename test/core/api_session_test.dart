@@ -460,6 +460,35 @@ void main() {
       expect(authRedirect(signedIn: true, uri: Uri.parse('/loading')), '/');
     });
 
+    test('from is used only for in-app paths other than the auth pages', () {
+      String? after(String from) => authRedirect(
+        signedIn: true,
+        uri: Uri(path: '/login', queryParameters: {'from': from}),
+      );
+      expect(after('/m/cari?id=3'), '/m/cari?id=3');
+      expect(after('/login'), '/');
+      expect(after('/login?from=%2Fm%2Fx'), '/');
+      expect(after('/loading'), '/');
+      expect(after('https://evil.example/x'), '/');
+      expect(after('//evil.example/x'), '/');
+      expect(authRedirect(signedIn: true, uri: Uri.parse('/login')), '/');
+    });
+
+    test('a reload on /login does not come back to /login', () {
+      expect(
+        authRedirect(
+          signedIn: false,
+          restoring: true,
+          uri: Uri.parse('/login'),
+        ),
+        '/loading',
+      );
+      expect(
+        authRedirect(signedIn: true, uri: Uri.parse('/loading?from=%2Flogin')),
+        '/',
+      );
+    });
+
     test('signed out goes to login and back via from', () {
       expect(
         authRedirect(signedIn: false, uri: Uri.parse('/m/cari')),
@@ -473,6 +502,13 @@ void main() {
   });
 
   group('app startup (real mode)', () {
+    Future<void> settleApp(WidgetTester tester) async {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pumpAndSettle();
+    }
+
     Future<void> pumpReal(WidgetTester tester, _FakeAdapter adapter) async {
       tester.view
         ..devicePixelRatio = 1
@@ -512,6 +548,78 @@ void main() {
       expect(find.byType(LoginPage), findsOneWidget);
       expect(find.byType(ShellPage), findsNothing);
       expect(find.byType(ActionChip), findsNothing);
+    });
+
+    Future<ProviderContainer> pumpSignedIn(
+      WidgetTester tester, {
+      String? route,
+    }) async {
+      if (route != null) {
+        tester.platformDispatcher.defaultRouteNameTestValue = route;
+        addTearDown(tester.platformDispatcher.clearDefaultRouteNameTestValue);
+      }
+      final adapter = _FakeAdapter((o) {
+        if (o.path == '/auth/refresh') return _token('t2');
+        if (o.path == '/auth/logout') return _Reply.ok(null);
+        return _server(o);
+      });
+      await pumpReal(tester, adapter);
+      await settleApp(tester);
+      return ProviderScope.containerOf(tester.element(find.byType(App)));
+    }
+
+    String location(ProviderContainer c) =>
+        c.read(routerProvider).state.uri.toString();
+
+    Future<void> signInViaForm(WidgetTester tester) async {
+      await tester.enterText(find.byType(TextFormField).first, 'esin');
+      await tester.enterText(find.byType(TextFormField).last, 'x');
+      await tester.tap(find.byType(FilledButton));
+      await settleApp(tester);
+    }
+
+    testWidgets('sign out, then sign in, ends on the home page', (
+      tester,
+    ) async {
+      final container = await pumpSignedIn(tester);
+      expect(find.byType(ShellPage), findsOneWidget);
+      await tester.runAsync(
+        () => container.read(sessionProvider.notifier).logout(),
+      );
+      await tester.pumpAndSettle();
+      expect(location(container), '/login');
+      expect(find.byType(LoginPage), findsOneWidget);
+      await signInViaForm(tester);
+      expect(location(container), '/');
+      expect(find.byType(ShellPage), findsOneWidget);
+      expect(find.byType(LoginPage), findsNothing);
+    });
+
+    testWidgets('reload on /login with a valid session shows the home page', (
+      tester,
+    ) async {
+      final container = await pumpSignedIn(tester, route: '/login');
+      expect(location(container), '/');
+      expect(find.byType(ShellPage), findsOneWidget);
+      expect(find.byType(LoginPage), findsNothing);
+    });
+
+    testWidgets('sign-in with from=/login goes home, a valid from goes there', (
+      tester,
+    ) async {
+      final container = await pumpSignedIn(
+        tester,
+        route: '/login?from=%2Flogin',
+      );
+      expect(location(container), '/');
+      await tester.runAsync(
+        () => container.read(sessionProvider.notifier).logout(),
+      );
+      await tester.pumpAndSettle();
+      container.read(routerProvider).go('/login?from=%2Fm%2Fcockpit');
+      await tester.pumpAndSettle();
+      await signInViaForm(tester);
+      expect(location(container), '/m/cockpit');
     });
 
     testWidgets('refresh succeeds: /me is loaded and the shell is shown', (

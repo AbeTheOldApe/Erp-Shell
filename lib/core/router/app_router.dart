@@ -91,8 +91,7 @@ String? authRedirect({
   if (onLoading) {
     // go_router does not redirect a second time, so the final destination
     // is chosen here: the wanted page, or the login page that remembers it.
-    final from = uri.queryParameters[Routes.fromParam];
-    final wanted = from != null && from.startsWith('/') ? from : null;
+    final wanted = _safeFrom(uri);
     if (signedIn) return wanted ?? Routes.home;
     return Uri(
       path: Routes.login,
@@ -103,15 +102,27 @@ String? authRedirect({
     if (onLogin) return null;
     return _withFrom(Routes.login, uri);
   }
-  if (onLogin) {
-    final from = uri.queryParameters[Routes.fromParam];
-    return from != null && from.startsWith('/') ? from : Routes.home;
-  }
+  if (onLogin) return _safeFrom(uri) ?? Routes.home;
   return null;
 }
 
+/// The `from` parameter if it is an in-app path that is worth returning to;
+/// `null` for a missing value, the auth pages and external addresses.
+String? _safeFrom(Uri uri) {
+  final from = uri.queryParameters[Routes.fromParam];
+  if (from == null || !from.startsWith('/') || from.startsWith('//')) {
+    return null;
+  }
+  final path = Uri.tryParse(from)?.path;
+  if (path == null || path == Routes.login || path == Routes.loading) {
+    return null;
+  }
+  return from;
+}
+
 String _withFrom(String path, Uri uri) {
-  final from = uri.path == Routes.home ? null : uri.toString();
+  final skip = {Routes.home, Routes.login, Routes.loading};
+  final from = skip.contains(uri.path) ? null : uri.toString();
   return Uri(
     path: path,
     queryParameters: from == null ? null : {Routes.fromParam: from},
