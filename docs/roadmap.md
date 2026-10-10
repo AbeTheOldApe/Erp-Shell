@@ -183,6 +183,16 @@ Gerçek modun sözleşmesi `docs/api-contract.md`'dir (`menu-schema.md`'deki ilg
 
 **Kararlar (Faz 4):** Token depolama yeniden değerlendirmesi karara bağlandı: access token bellekte, refresh token `httpOnly` cookie (bkz. `CLAUDE.md`).
 
+## Açık tasarım konuları
+
+Fazların dışındadır; başlanmadı.
+
+### Ayrı projelerin kabuğa alınması
+
+- Nasıl paketlenecek / bağlanacak?
+- Ortak oturum ve yetki nasıl paylaşılacak?
+- Sürümleme nasıl yapılacak?
+
 ## Kapsam dışı / gelecek fikirleri
 
 - Bölünmüş görünüm ve sekme grupları (talep gelirse ayrıca değerlendirilecek)

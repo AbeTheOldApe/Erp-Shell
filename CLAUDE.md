@@ -2,6 +2,12 @@
 
 Bu dosya Claude Code için proje bağlamıdır. Kodlamaya başlamadan önce bunu ve `docs/` altındaki dosyaları oku. Bu dosyadaki kararlar **kesinleşmiştir**; bunlardan sapman gerekirse önce kullanıcıya sor.
 
+## Amaç
+
+Bu proje, adım adım geliştirilecek bir web ve mobil uygulamanın TABAN YAPISIDIR (kabuk / shell). Hedef, ileride geliştirilecek ayrı projelerin bu kabuğun içine alınıp TEK BİR UYGULAMA gibi çalışmasıdır: aynı giriş ve oturum, aynı menü ve yetki modeli, aynı sekmeli çalışma alanı, aynı ortak bileşenler. Öncelik webdir; mobil sonra gelir.
+
+Bugün modüller aynı repoda yazılır ve `registry.dart`'a kaydedilir. Ayrı projelerin kabuğa nasıl bağlanacağı (paket olarak, ayrı build olarak vb.) AÇIK BİR TASARIM KONUSUDUR; karar verilene kadar bu konuda varsayım yapma. Ama kabuk–modül sınırını (`ModuleDef`, `ModuleContext`, registry, modüllerin birbirini import etmemesi) bozma: ayrı projelerin ileride kabuğa alınabilmesi bu sınıra dayanır.
+
 ## Proje özeti
 
 Web üzerinde çalışan, Flutter ile yazılan bir **taban (shell) uygulama**. İş modülleri bu tabanın içine eklenecek.
