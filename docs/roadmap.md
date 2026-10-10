@@ -112,7 +112,7 @@ Fazları sırayla uygula. Bir fazı bitirince kutuları işaretle. Ayrıntılı 
 
 ## Faz 4: Gerçek API
 
-**Durum: tamamlandı (2026-10-08).** 4.1–4.5 test ortamında (`https://test.opticode.com.tr`) doğrulandı.
+**Durum: tamamlandı (4.1–4.5: 2026-10-08, 4.6: 2026-10-10).** 4.1–4.6 test ortamında (`https://test.opticode.com.tr`) doğrulandı.
 
 Gerçek modun sözleşmesi `docs/api-contract.md`'dir (`menu-schema.md`'deki ilgili maddeler gerçek mod için geçersiz). Shell API'ye uyar; çeviri `Http*` repository'lerindedir, UI değişmez. Mock modu eskisi gibi çalışmaya devam etmelidir.
 
@@ -197,13 +197,15 @@ Sözleşme: `docs/api-contract.md` §6A. Mock mod eskisi gibi çalışır.
 
 **Test edilenler (4.6):** `flutter analyze` temiz, `flutter test` tümü geçti. `test/modules/cari_adres_test.dart`: `EntegrasyonTuru` okuma (Netsis/Yok, bilinmeyen/boş/eksik → Yok) ve mock kullanıcılar; kümeye göre form alanları (Yok / Netsis); istemci doğrulaması (Netsis'te Adres zorunlu, PostaKodu 5 rakam, kümede en az bir alan, adres tipi zorunlu, uzunluklar); `MessageCode` → görünüm; Http isteği (yalnızca kümenin alanları gönderilir, güncellemede `CariAdresId`); mock ekle → listele → düzenle → sil; kümeye ait olmayan alanlar güncellemede korunur; alt yetkiye göre sekme ve düğme görünürlüğü; `NetsisBagliMi` → düğmeler gizli; yeni cari → sekme devre dışı, kayıttan sonra etkin; adres tipleri oturum başına bir kez; değişmiş formu kapatmadan önce onay.
 
-**Notlar:** Dağıtım yapılmadı (4.6 test sunucusunda denenmedi). `ModuleContext`'e `subPermissions` eklendi.
+**Notlar:** `ModuleContext`'e `subPermissions` eklendi.
 
 **Mock menü (4.6 eki):** Üç mock menüye (`assets/mock/menu_*.json`) "Tanımlar › Cariler" (moduleKey `cari`, ikon `contacts`) eklendi; böylece mock modda Cari ve Adresler sekmesine ulaşılır. Yetkiler: `yonetici` ve `satis` tam, `depo` yalnızca `canView` (Adresler sekmesi okunur, Ekle/Düzenle/Sil gizli). Mock modda iki form denenebilir: `yonetici` Netsis, `satis`/`depo` Yok kümesini görür. Mock verisinde cari 9 Netsis'e bağlı (salt okunur), cari 1 ve 2'nin adresleri her iki kümenin alanlarını da içerir. Gerçek mod menüsü ve mock'un diğer öğeleri değişmedi. Testler: `menu_tree_test.dart` (her kullanıcıda Cariler, yetkiler, grup kimlikleri), `cari_adres_test.dart` (depo ile menüden Cariler → Adresler salt okunur).
 
 **Gerçek API ile doğrulandı (tarayıcı, geliştirme proxy'si üzerinden test API'sine karşı):** Adresler sekmesi, adres tipi listesi (oturumda bir kez çekiliyor), yeni cari → sekme devre dışı, ekleme (Yok kümesi alanları), boş form hatası, kaydedilmemiş değişiklik onayı, düzenleme, silme. Console temiz.
 
-**Bekleyenler (4.6):** Test sunucusuna dağıtım yapılmadı. Mock modda Netsis formu (`yonetici`) tarayıcıda denenmedi; mock menüsünde Cariler yoktu, düzeltme ayrı yapıldı (yukarıdaki "Mock menü" notu).
+**Test sunucusunda doğrulandı (4.6):** `tools/build-web.ps1` zip'i ve `robocopy /MIR /XF web.config` ile dağıtıldı; `https://test.opticode.com.tr` üzerinde uçtan uca: Adresler sekmesi, ekleme, düzenleme, silme, adres tipi listesi oturumda bir kez, Console temiz. Mock modda tarayıcıda: Netsis formu (`yonetici`), Yok formu (`satis`), salt okunur (`depo`).
+
+**Durum: tamamlandı (2026-10-10).**
 
 ## Açık tasarım konuları
 
