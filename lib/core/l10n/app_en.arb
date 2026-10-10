@@ -253,5 +253,52 @@
     "placeholders": {
       "value": {"type": "String"}
     }
-  }
+  },
+  "validationMaxDecimals": "At most {max} decimal places are allowed",
+  "@validationMaxDecimals": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+  "validationNonNegative": "Enter 0 or a greater number",
+  "validationTooLarge": "The value is too large",
+  "cariTabBelgeler": "Documents",
+  "belgeSaveFirst": "Save the account first to add documents.",
+  "belgeNew": "New document",
+  "belgeEdit": "Edit document",
+  "belgeView": "Document",
+  "belgeEmpty": "This account has no documents.",
+  "belgeColTarih": "Date",
+  "belgeColTipi": "Document type",
+  "belgeColNo": "Document no",
+  "belgeColDoviz": "Currency",
+  "belgeColKalem": "Lines",
+  "belgeColToplam": "Total amount",
+  "belgeFieldTipi": "Document type",
+  "belgeFieldTarih": "Date",
+  "belgeFieldNo": "Document no",
+  "belgeFieldDoviz": "Currency",
+  "belgeFieldVade": "Terms",
+  "belgeKalemler": "Lines",
+  "belgeKalemEkle": "Add line",
+  "belgeKalemSil": "Delete line",
+  "belgeFieldMiktar": "Quantity",
+  "belgeFieldBirim": "Unit",
+  "belgeFieldTutar": "Amount",
+  "belgeToplam": "Total",
+  "belgeStokKarti": "Stock card: #{id}",
+  "@belgeStokKarti": {
+    "placeholders": {
+      "id": {"type": "int"}
+    }
+  },
+  "belgeKalemRequired": "Enter at least one line.",
+  "belgeKalemLimit": "At most {max} lines are allowed.",
+  "@belgeKalemLimit": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+  "belgeNoKalemInfo": "The document has no lines left; it will be saved without lines.",
+  "belgeDiscardMessage": "The changes in the document form are not saved. They will be lost if you close it."
 }

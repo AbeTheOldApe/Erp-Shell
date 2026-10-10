@@ -18,6 +18,7 @@ import '../../shared/states/error_state.dart';
 import '../../shared/states/skeleton_loader.dart';
 import '../module_def.dart';
 import 'cari_adres_tab.dart';
+import 'cari_belge_tab.dart';
 import 'cari_info_band.dart';
 import 'cari_messages.dart';
 import 'data/cari_models.dart';
@@ -86,12 +87,16 @@ class _CariDetailPageState extends ConsumerState<CariDetailPage> {
 
   /// An address form is open with unsaved changes.
   bool _adresDirty = false;
+
+  /// A document form is open with unsaved changes.
+  bool _belgeDirty = false;
   bool _reportedDirty = false;
 
-  /// 0 = Genel, 1 = Adresler. The addresses are built on first visit and
-  /// then kept alive.
+  /// 0 = Genel, 1 = Adresler, 2 = Belgeler. The tabs are built on first
+  /// visit and then kept alive.
   int _tab = 0;
   bool _adreslerOpened = false;
+  bool _belgelerOpened = false;
 
   bool get _isNew => widget.id == null;
   bool get _netsisBagli => _loaded?.netsisBagli ?? false;
@@ -204,9 +209,14 @@ class _CariDetailPageState extends ConsumerState<CariDetailPage> {
     _syncDirty();
   }
 
+  void _setBelgeDirty(bool value) {
+    _belgeDirty = value;
+    _syncDirty();
+  }
+
   /// The tab is dirty while the general form or an address form has changes.
   void _syncDirty() {
-    final value = _dirty || _adresDirty;
+    final value = _dirty || _adresDirty || _belgeDirty;
     if (value == _reportedDirty) return;
     _reportedDirty = value;
     widget.onDirtyChanged(value);
@@ -339,7 +349,11 @@ class _CariDetailPageState extends ConsumerState<CariDetailPage> {
   }
 
   /// Genel / Adresler switch. Adresler waits until the Cari is saved.
-  Widget _tabHeader(AppLocalizations l10n) {
+  Widget _tabHeader(
+    AppLocalizations l10n, {
+    required bool showAdresler,
+    required bool showBelgeler,
+  }) {
     final spacing = context.spacing;
     return Padding(
       padding: EdgeInsets.fromLTRB(spacing.md, spacing.sm, spacing.md, 0),
@@ -351,24 +365,38 @@ class _CariDetailPageState extends ConsumerState<CariDetailPage> {
             showSelectedIcon: false,
             segments: [
               ButtonSegment(value: 0, label: Text(l10n.cariTabGenel)),
-              ButtonSegment(
-                value: 1,
-                label: Text(l10n.cariTabAdresler),
-                enabled: !_isNew,
-              ),
+              if (showAdresler)
+                ButtonSegment(
+                  value: 1,
+                  label: Text(l10n.cariTabAdresler),
+                  enabled: !_isNew,
+                ),
+              if (showBelgeler)
+                ButtonSegment(
+                  value: 2,
+                  label: Text(l10n.cariTabBelgeler),
+                  enabled: !_isNew,
+                ),
             ],
             selected: {_tab},
             onSelectionChanged: (selection) => setState(() {
               _tab = selection.first;
               if (_tab == 1) _adreslerOpened = true;
+              if (_tab == 2) _belgelerOpened = true;
             }),
           ),
           if (_isNew) ...[
             SizedBox(height: spacing.xs),
-            Text(
-              l10n.adresSaveFirst,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            if (showAdresler)
+              Text(
+                l10n.adresSaveFirst,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            if (showBelgeler)
+              Text(
+                l10n.belgeSaveFirst,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
           ],
         ],
       ),
@@ -443,6 +471,7 @@ class _CariDetailPageState extends ConsumerState<CariDetailPage> {
         );
 
     final showAdresler = widget.ctx.subPermissions('adresler').canView;
+    final showBelgeler = widget.ctx.subPermissions('belgeler').canView;
     final onGeneral = _tab == 0;
 
     final general = CallbackShortcuts(
@@ -621,24 +650,39 @@ class _CariDetailPageState extends ConsumerState<CariDetailPage> {
             primary: true,
           ),
       ],
-      body: showAdresler
+      body: showAdresler || showBelgeler
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _tabHeader(l10n),
+                _tabHeader(
+                  l10n,
+                  showAdresler: showAdresler,
+                  showBelgeler: showBelgeler,
+                ),
                 Expanded(
                   child: IndexedStack(
                     index: _tab,
                     sizing: StackFit.expand,
                     children: [
-                      ExcludeFocus(excluding: !onGeneral, child: general),
-                      if (_adreslerOpened)
+                      ExcludeFocus(excluding: _tab != 0, child: general),
+                      if (_adreslerOpened && showAdresler)
                         ExcludeFocus(
-                          excluding: onGeneral,
+                          excluding: _tab != 1,
                           child: CariAdresTab(
                             cariId: widget.id!,
                             permissions: widget.ctx.subPermissions('adresler'),
                             onDirtyChanged: _setAdresDirty,
+                          ),
+                        )
+                      else
+                        const SizedBox.shrink(),
+                      if (_belgelerOpened && showBelgeler)
+                        ExcludeFocus(
+                          excluding: _tab != 2,
+                          child: CariBelgeTab(
+                            cariId: widget.id!,
+                            permissions: widget.ctx.subPermissions('belgeler'),
+                            onDirtyChanged: _setBelgeDirty,
                           ),
                         )
                       else

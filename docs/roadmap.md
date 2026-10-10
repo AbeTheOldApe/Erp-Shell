@@ -207,6 +207,16 @@ Sözleşme: `docs/api-contract.md` §6A. Mock mod eskisi gibi çalışır.
 
 **Durum: tamamlandı (2026-10-10).**
 
+### 4.7 Cari belgeleri
+
+Sözleşme: `docs/api-contract.md` §6B. Mock mod eskisi gibi çalışır. **Durum: kod ve testler tamam, dağıtılmadı.**
+
+- [x] Alt yetki `belgeler` (`CariBelgeler`, `KAYDET`/`SIL`), `CariMain`'den bağımsız; mock modda modülün yetkisini izler
+- [x] `CariBelgeRepository` (soyut) + Mock + Http; seçenekler oturum başına bir kez (`belgeSeceneklerProvider`); tutar kuruş, miktar 1/10000 tam sayı (`core/utils/decimal_units.dart`), JSON çevirisi yalnızca Http katmanında; tarih `yyyy-MM-dd` metni
+- [x] Cari detayında Genel / Adresler / Belgeler; sunucu taraflı sayfalı liste (25), belge formu (kalem tablosu, toplam, pasif belge tipi korunur, Netsis'te mevcut StokKartiId salt okunur ve korunur), Netsis'e bağlı carinin belgeleri salt okunur değil
+
+**Notlar:** Miktar üst sınırı istemcide 2^53/10000 (web tamsayı hassasiyeti); sözleşmedeki sınır pratikte ulaşılamaz. Eklemeler: `showAdaptiveAppDialog(onWillClose:)` 4.6'dan. Test: `test/modules/cari_belge_test.dart`.
+
 ## Açık tasarım konuları
 
 Fazların dışındadır; başlanmadı.

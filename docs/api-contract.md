@@ -387,6 +387,143 @@ form açılırken seçenek olarak kullanır; adları kodda sabitlemez.
 `NetsisBagliMi: true` olan carinin adres listesinde Ekle, Düzenle ve Sil **gizlenir** (devre dışı bırakılmaz), üstte bilgi bandı gösterilir
 (carinin kendi formundaki bantla aynı metin). Yetki olmasa bile (`KAYDET`/`SIL` yok) aynı düğmeler gizlenir.
 
+## 6B. Cari belgeleri API'si
+
+Bu bölüm §6 (Cari) ve §6A (Cari Adresleri) bölümlerinin devamıdır; zarf, hata kodları, oturum ve başlık kuralları orada
+tanımlıdır. Alan adları PascalCase'tir. Tenant ayrımı sunucuda yapılır: kullanıcı yalnızca kendi tenant'ının carilerinin belgelerini görür ve
+değiştirir; başka tenant'a ait bir cari ya da belge `1004` döner.
+
+### 6B.1 Kavram
+
+Bir **cari belgesi** bir başlık ve bir ya da daha fazla **kalemden** oluşur (belge–kalem). Cagkan'da belgelerin tamamı "Açılış" tipindedir ve
+belge başına tek kalem vardır; yine de bir belgede birden fazla kalem serbesttir. Belgenin toplamı kalemlerin `Tutar` toplamıdır (sunucu listede
+`ToplamTutar` olarak döner; belge kaydında toplam gönderilmez).
+
+### 6B.2 Sayfa ve buton kodları
+
+| Sayfa kodu | Butonlar | Kullanım |
+|---|---|---|
+| `CariBelgeler` | `KAYDET`, `SIL` | Liste ve okuma: sayfa kodu yeter. Kaydet: `KAYDET`. Sil: `SIL` |
+
+`CariBelgeler`, `CariMain` ve `CariAdresler`'den bağımsız verilir. `canView` = `Pages` içinde `CariBelgeler`; `canAdd` ve `canEdit` =
+`Buttons.CariBelgeler` içinde `KAYDET`; `canDelete` = `SIL`.
+
+Netsis'e bağlı cari kuralı (`1203`) belgelere **uygulanmaz**: Netsis senkronu carinin kendi alanlarını ezer, belgelerini değil. Bu yüzden belge
+ekranında Netsis salt okunur durumu ve bilgi bandı yoktur; düğmeler yalnızca yetkiye bağlıdır.
+
+### 6B.3 Uç noktalar
+
+#### 6B.3.1 `GET /api/v1/fi/cari-belge-secenekleri` — sabit listeler (yetki: `CariBelgeler`)
+
+Tek çağrıda belge formunun bütün seçenekleri. Ortak sabit listelerdir (tenant'a göre değişmez); istemci oturum başına bir kez çeker ve
+kullanıcı değişince ya da çıkışta temizler. Adları kodda sabitlemez.
+
+```json
+{ "IsSuccessful": true, "MessageCode": 200, "Message": "İşlem başarılı.",
+  "Data": {
+    "BelgeTipleri":   [ { "CariBelgeTipiId": 1, "CariBelgeTipi": "Satış Faturası", "Sign": 1 } ],
+    "DovizBirimleri": [ { "DovizBirimiId": 1, "DovizBirimi": "TRL", "DovizBirimiTanimi": "TÜRK LİRASI", "DovizSimgesi": "₺" } ],
+    "Birimler":       [ { "BirimId": 1, "Birim": "Adet", "BirimKodu": "AD" } ],
+    "Vadeler":        [ { "OdemeVadeId": 1, "OdemeVade": "Peşin", "OdemeVadeGunSayisi": 0 } ] } }
+```
+
+- `BelgeTipleri` yalnızca geçerli (aktif) tipleri içerir. `Sign` (+1 / −1 / 0) tipin cari bakiyeye etkisidir; Hareket Dökümü ve Yaşlandırma
+  ekranlarının dayanağıdır, bu ekranda yalnızca saklanır, işlenmez.
+- Her liste `…Id` sırasıyla gelir.
+
+#### 6B.3.2 `GET /api/v1/fi/cari/{CariId}/belgeler` — carinin belgeleri (yetki: `CariBelgeler`)
+
+Query: `Page` (≥ 1, varsayılan 1), `PageSize` (1–200, varsayılan 50). Sıra: belge tarihi azalan, sonra `CariBelgeId` azalan.
+
+```json
+{ "IsSuccessful": true, "MessageCode": 200, "Message": "İşlem başarılı.",
+  "Data": {
+    "Items": [ { "CariBelgeId": 29, "CariBelgeTipiId": 7, "CariBelgeTipi": "Açılış", "Sign": 1, "CariBelgeNo": "API-1",
+                 "CariBelgeTarihi": "2026-10-10", "DovizBirimiId": 1, "DovizBirimi": "TRL", "OdemeVadeId": 1,
+                 "KalemSayisi": 2, "ToplamTutar": 133.55 } ],
+    "TotalCount": 1, "Page": 1, "PageSize": 50 } }
+```
+
+- `CariBelgeNo` boş olabilir (`null`); benzersiz olması gerekmez.
+- `ToplamTutar` kalemlerin toplamıdır; tutarı boş (`null`) kalem 0 sayılır. Kalemsiz belgede `KalemSayisi` 0 ve `ToplamTutar` 0'dır.
+- Cari yoksa ya da başka tenant'a aitse `1004`; `Page`/`PageSize` geçersizse `1003`.
+
+#### 6B.3.3 `GET /api/v1/fi/cari-belge/{CariBelgeId}` — tek belge, kalemleriyle (yetki: `CariBelgeler`)
+
+```json
+{ "IsSuccessful": true, "MessageCode": 200, "Message": "İşlem başarılı.",
+  "Data": {
+    "CariBelgeId": 29, "CariId": 5582, "CariBelgeTipiId": 7, "CariBelgeTipi": "Açılış", "Sign": 1, "CariBelgeNo": "API-1",
+    "CariBelgeTarihi": "2026-10-10", "DovizBirimiId": 1, "DovizBirimi": "TRL", "OdemeVadeId": 1,
+    "Kalemler": [ { "CariBelgeKalemId": 51, "StokKartiId": null, "Miktar": 1.0, "BirimId": 1, "Birim": "Adet", "Tutar": 123.45 } ] } }
+```
+
+- Stok kartı adı döndürülmez; yalnızca `StokKartiId`.
+- Kalemin `Tutar`'ı `null` olabilir (taşınan eski kayıtlarda); form bu durumda boş gösterir ve kaydetmeden önce değer ister.
+- Yoksa ya da başka tenant'a aitse `1004`. Belge pasif bir belge tipindeyse `CariBelgeTipi` yine adıyla gelir.
+
+#### 6B.3.4 `POST /api/v1/fi/cari-belge` — kaydet (yetki: `CariBelgeler` + `KAYDET`)
+
+`CariBelgeId` yok ya da `0` → yeni belge; dolu → güncelleme (`CariId` değiştirilemez, `1003`).
+
+```json
+{ "CariBelgeId": 29, "CariId": 5582, "CariBelgeTipiId": 7, "CariBelgeNo": "API-1", "CariBelgeTarihi": "2026-10-10",
+  "DovizBirimiId": 1, "OdemeVadeId": 1,
+  "Kalemler": [ { "CariBelgeKalemId": 51, "Miktar": 1, "BirimId": 1, "Tutar": 123.45 },
+                { "Miktar": 2.5, "BirimId": 1, "Tutar": 10.10 } ] }
+```
+
+| Alan | Kural |
+|---|---|
+| `CariBelgeId` | int ≥ 0, opsiyonel |
+| `CariId` | **zorunlu**, int > 0 |
+| `CariBelgeTipiId` | **zorunlu**; geçerli (aktif) tip olmalı (`1003`). Güncellemede belge pasif bir tipteyse **aynı tipte kalabilir**; pasif bir tipe geçilemez |
+| `CariBelgeNo` | ≤ 20 karakter, opsiyonel |
+| `CariBelgeTarihi` | **zorunlu**, metin, `yyyy-MM-dd` (geçerli tarih; `Date`'e çevrilip saat dilimiyle gönderilmez) |
+| `DovizBirimiId` | **zorunlu**; §6B.3.1'deki listede olmalı |
+| `OdemeVadeId` | opsiyonel; yoksa sunucu "Peşin" (1) varsayılanını kullanır, güncellemede mevcut değer korunur |
+| `Kalemler` | dizi, en çok 200 öğe (aşağıya bakın) |
+
+Kalem alanları:
+
+| Alan | Kural |
+|---|---|
+| `CariBelgeKalemId` | yok ya da 0 → yeni kalem; dolu → bu belgenin mevcut kalemi (başka belgenin kalemi `1003`) |
+| `Miktar` | opsiyonel (yoksa 1); > 0, en çok 4 ondalık |
+| `BirimId` | **zorunlu**; §6B.3.1'deki listede olmalı (`1003`) |
+| `Tutar` | **zorunlu**; ≥ 0 (0 geçerli), en çok 2 ondalık |
+| `StokKartiId` | yalnızca `EntegrasyonTuru = Netsis` kümesinde yazılır; `Yok` kümesinde sunucu yok sayar (yeni kalemde boş kalır, güncellemede mevcut değer korunur). Mevcut bir `StokKartiId` Netsis kümesinde gönderilmezse silinir |
+
+**Tam liste kuralı:** `Kalemler` özelliği **gönderildiyse** liste tam sayılır: listede olmayan mevcut kalemler silinir (soft delete). Boş dizi bütün
+kalemleri siler. `Kalemler` hiç gönderilmezse kalemlere dokunulmaz. Shell'in belge formu her zaman `Kalemler`'i, ekrandaki kalem satırlarının
+tamamıyla gönderir. **Yeni belgede en az 1 kalem zorunludur** (`1002`); mevcut belge kalemsiz kaydedilebilir.
+
+Tutar ve miktar JSON sayısı olarak gönderilir. Sunucu sınırı aşan ondalığı **yuvarlamaz**, `1003` ile reddeder; istemci ondalık sınırını
+gönderimden önce kendisi uygular. İstemci toplamı hesaplarken kayan nokta hatası yapmamak için tutarları kuruş (tam sayı) olarak toplar.
+
+Başarı: `Data: { "CariBelgeId": 29 }`.
+
+#### 6B.3.5 `DELETE /api/v1/fi/cari-belge/{CariBelgeId}` — sil (yetki: `CariBelgeler` + `SIL`)
+
+Soft delete; belge ve kalemleri birlikte silinir. Başarıda `IsSuccessful: true`, `Data: { "CariBelgeId": … }`. Zaten silinmişse `1005`; yoksa `1004`.
+
+### 6B.4 Doğrulama sınırları (Node katmanı, HTTP 422 / `2002`)
+
+Sunucu aynı kuralları iki katmanda uygular: önce Node (Joi), sonra SP. İstemci doğrulaması bunlarla aynı kuralları kullanır:
+`CariBelgeNo` ≤ 20, `CariBelgeTarihi` `^\d{4}-\d{2}-\d{2}$`, `Kalemler` ≤ 200 öğe, `Miktar` > 0 ve ≤ 999999999999999 (4 ondalık),
+`Tutar` ≥ 0 ve ≤ 9999999999999.99 (2 ondalık), `BirimId` zorunlu, `Tutar` zorunlu.
+
+### 6B.5 Cari'ye özgü kodlar (belgeler)
+
+| Kod | Anlam | Shell davranışı |
+|---|---|---|
+| 1002 | Zorunlu alan eksik (cari, tip, tarih, döviz, yeni belgede kalem, kalemde birim/tutar) | Mesaj formda gösterilir |
+| 1003 | Geçersiz değer (tarih, tip, döviz, vade, birim, miktar/tutar, kalem bu belgeye ait değil, belgenin carisi değiştirilemez) | Mesaj formda; kalem hatası ilgili kalem satırında |
+| 1004 | Cari ya da belge bulunamadı | "Kayıt bulunamadı", listeyi yenile |
+| 1005 | Belge zaten silinmiş | Bilgi mesajı, listeyi yenile |
+
+`1203` (Netsis'e bağlı cari) belgeler için **yoktur**.
+
 ## 7. Geliştirme ve dağıtım
 
 ### 7.1 Yerel geliştirme: proxy

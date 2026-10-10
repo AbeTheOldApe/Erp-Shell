@@ -39,6 +39,13 @@ final Map<String, ModuleDef> moduleRegistry = Map.unmodifiable({
         editButton: 'KAYDET',
         deleteButton: 'SIL',
       ),
+      // The Belgeler tab, likewise independent.
+      'belgeler': ModuleApiPermissions(
+        pageCode: 'CariBelgeler',
+        addButton: 'KAYDET',
+        editButton: 'KAYDET',
+        deleteButton: 'SIL',
+      ),
     },
   ),
   'musteri': ModuleDef(

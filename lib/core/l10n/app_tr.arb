@@ -293,5 +293,52 @@
     "placeholders": {
       "value": {"type": "String"}
     }
-  }
+  },
+  "validationMaxDecimals": "En fazla {max} ondalık basamak girilebilir",
+  "@validationMaxDecimals": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+  "validationNonNegative": "0 veya daha büyük bir sayı girin",
+  "validationTooLarge": "Girilen değer çok büyük",
+  "cariTabBelgeler": "Belgeler",
+  "belgeSaveFirst": "Belge eklemek için önce cariyi kaydedin.",
+  "belgeNew": "Yeni belge",
+  "belgeEdit": "Belgeyi düzenle",
+  "belgeView": "Belge",
+  "belgeEmpty": "Bu cariye ait belge yok.",
+  "belgeColTarih": "Tarih",
+  "belgeColTipi": "Belge tipi",
+  "belgeColNo": "Belge no",
+  "belgeColDoviz": "Döviz",
+  "belgeColKalem": "Kalem",
+  "belgeColToplam": "Toplam tutar",
+  "belgeFieldTipi": "Belge tipi",
+  "belgeFieldTarih": "Tarih",
+  "belgeFieldNo": "Belge no",
+  "belgeFieldDoviz": "Döviz",
+  "belgeFieldVade": "Vade",
+  "belgeKalemler": "Kalemler",
+  "belgeKalemEkle": "Kalem ekle",
+  "belgeKalemSil": "Kalemi sil",
+  "belgeFieldMiktar": "Miktar",
+  "belgeFieldBirim": "Birim",
+  "belgeFieldTutar": "Tutar",
+  "belgeToplam": "Toplam",
+  "belgeStokKarti": "Stok kartı: #{id}",
+  "@belgeStokKarti": {
+    "placeholders": {
+      "id": {"type": "int"}
+    }
+  },
+  "belgeKalemRequired": "En az bir kalem girilmelidir.",
+  "belgeKalemLimit": "En fazla {max} kalem girilebilir.",
+  "@belgeKalemLimit": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+  "belgeNoKalemInfo": "Belgede kalem kalmadı; kalemsiz kaydedilecek.",
+  "belgeDiscardMessage": "Belge formundaki değişiklikler kaydedilmedi. Kapatırsanız kaybolacak."
 }
