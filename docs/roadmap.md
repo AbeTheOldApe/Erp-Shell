@@ -201,6 +201,10 @@ Sözleşme: `docs/api-contract.md` §6A. Mock mod eskisi gibi çalışır.
 
 **Mock menü (4.6 eki):** Üç mock menüye (`assets/mock/menu_*.json`) "Tanımlar › Cariler" (moduleKey `cari`, ikon `contacts`) eklendi; böylece mock modda Cari ve Adresler sekmesine ulaşılır. Yetkiler: `yonetici` ve `satis` tam, `depo` yalnızca `canView` (Adresler sekmesi okunur, Ekle/Düzenle/Sil gizli). Mock modda iki form denenebilir: `yonetici` Netsis, `satis`/`depo` Yok kümesini görür. Mock verisinde cari 9 Netsis'e bağlı (salt okunur), cari 1 ve 2'nin adresleri her iki kümenin alanlarını da içerir. Gerçek mod menüsü ve mock'un diğer öğeleri değişmedi. Testler: `menu_tree_test.dart` (her kullanıcıda Cariler, yetkiler, grup kimlikleri), `cari_adres_test.dart` (depo ile menüden Cariler → Adresler salt okunur).
 
+**Gerçek API ile doğrulandı (tarayıcı, geliştirme proxy'si üzerinden test API'sine karşı):** Adresler sekmesi, adres tipi listesi (oturumda bir kez çekiliyor), yeni cari → sekme devre dışı, ekleme (Yok kümesi alanları), boş form hatası, kaydedilmemiş değişiklik onayı, düzenleme, silme. Console temiz.
+
+**Bekleyenler (4.6):** Test sunucusuna dağıtım yapılmadı. Mock modda Netsis formu (`yonetici`) tarayıcıda denenmedi; mock menüsünde Cariler yoktu, düzeltme ayrı yapıldı (yukarıdaki "Mock menü" notu).
+
 ## Açık tasarım konuları
 
 Fazların dışındadır; başlanmadı.
