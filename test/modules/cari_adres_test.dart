@@ -167,6 +167,7 @@ CariAdres _adres({
 }
 
 void main() {
+  shellMockMenuTests();
   group('tenant integration in the session', () {
     Future<IntegrationType> loginWith(Object? integration) async {
       final adapter = FakeAdapter((o) {
@@ -860,6 +861,28 @@ void main() {
       await tester.pumpAndSettle();
       expect(_field('İl'), findsNothing);
       expect(ctx.dirtyChanges.last, isFalse);
+    });
+  });
+}
+
+void shellMockMenuTests() {
+  group('mock menu in the shell', () {
+    testWidgets('depo: Cariler opens, Adresler is read-only', (tester) async {
+      await pumpApp(tester, username: 'depo', size: const Size(500, 2600));
+      // Phone width: the menu is behind the hamburger button.
+      await tester.tap(find.byTooltip(_l10n.menuToggle));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Tanımlar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cariler').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bora Tekstil Ltd. Şti.').first);
+      await tester.pumpAndSettle();
+      await _openAdresler(tester);
+      expect(find.textContaining('Kadıköy'), findsOneWidget);
+      expect(find.text('Yeni adres'), findsNothing);
+      expect(find.byTooltip('Adresi düzenle'), findsNothing);
+      expect(find.byTooltip('Sil'), findsNothing);
     });
   });
 }

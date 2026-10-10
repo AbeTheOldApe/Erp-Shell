@@ -71,6 +71,18 @@
           "children": []
         }
       ]
+    },
+    {
+      "id": 5, "title": "Tanımlar", "icon": "folder", "moduleKey": null,
+      "sortOrder": 50, "badge": null, "permissions": null,
+      "children": [
+        {
+          "id": 51, "title": "Cariler", "icon": "contacts", "moduleKey": "cari",
+          "sortOrder": 10, "badge": null,
+          "permissions": { "canView": true, "canAdd": true, "canEdit": true, "canDelete": true },
+          "children": []
+        }
+      ]
     }
   ]
 }

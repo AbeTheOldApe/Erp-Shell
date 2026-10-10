@@ -133,7 +133,7 @@ void main() {
     });
 
     test('groupIds and leaves', () {
-      expect(MenuTree.groupIds(menu), {1, 2, 3, 32, 4});
+      expect(MenuTree.groupIds(menu), {1, 2, 3, 32, 4, 5});
       expect(MenuTree.leaves(menu).map((l) => l.moduleKey), [
         'siparis',
         'musteri',
@@ -142,6 +142,7 @@ void main() {
         'rapor-satis',
         'rapor-stok',
         'kullanici',
+        'cari',
       ]);
     });
   });
@@ -150,8 +151,16 @@ void main() {
     List<String?> keysOf(String user) =>
         MenuTree.leaves(_loadMock(user)).map((l) => l.moduleKey).toList();
 
+    test('every user has Tanımlar › Cariler (moduleKey cari)', () {
+      for (final user in ['yonetici', 'satis', 'depo']) {
+        final menu = _loadMock(user);
+        expect(MenuTree.findLeaf(menu, 'cari')?.title, 'Cariler', reason: user);
+        expect(MenuTree.ancestorIds(menu, 'cari'), [5], reason: user);
+      }
+    });
+
     test('yonetici sees everything', () {
-      expect(keysOf('yonetici'), hasLength(7));
+      expect(keysOf('yonetici'), hasLength(8));
     });
 
     test('depo sees Depo, read-only Siparişler and Raporlar, badge on '
@@ -163,7 +172,13 @@ void main() {
         'sevkiyat',
         'rapor-satis',
         'rapor-stok',
+        'cari',
       ]);
+      // Read-only Cariler: the buttons are hidden, also in mock mode.
+      expect(
+        MenuTree.findLeaf(menu, 'cari')!.permissions,
+        const ModulePermissions(canView: true),
+      );
       expect(
         MenuTree.findLeaf(menu, 'siparis')!.permissions,
         const ModulePermissions(canView: true),
@@ -176,10 +191,19 @@ void main() {
       expect(menu.map((n) => n.title), isNot(contains('Ayarlar')));
     });
 
-    test('satis sees only Satış without delete', () {
+    test('satis sees Satış (without delete) and Tanımlar', () {
       final menu = _loadMock('satis');
-      expect(keysOf('satis'), ['siparis', 'musteri']);
-      expect(menu.map((n) => n.title), ['Satış']);
+      expect(keysOf('satis'), ['siparis', 'musteri', 'cari']);
+      expect(menu.map((n) => n.title), ['Satış', 'Tanımlar']);
+      expect(
+        MenuTree.findLeaf(menu, 'cari')!.permissions,
+        const ModulePermissions(
+          canView: true,
+          canAdd: true,
+          canEdit: true,
+          canDelete: true,
+        ),
+      );
       expect(
         MenuTree.findLeaf(menu, 'siparis')!.permissions!.canDelete,
         isFalse,

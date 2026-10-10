@@ -58,6 +58,18 @@
       "id": 4, "title": "Ayarlar", "icon": "settings", "moduleKey": null,
       "sortOrder": 40, "badge": null, "permissions": null,
       "children": []
+    },
+    {
+      "id": 5, "title": "Tanımlar", "icon": "folder", "moduleKey": null,
+      "sortOrder": 50, "badge": null, "permissions": null,
+      "children": [
+        {
+          "id": 51, "title": "Cariler", "icon": "contacts", "moduleKey": "cari",
+          "sortOrder": 10, "badge": null,
+          "permissions": { "canView": true, "canAdd": false, "canEdit": false, "canDelete": false },
+          "children": []
+        }
+      ]
     }
   ]
 }
