@@ -193,6 +193,14 @@ final sessionProvider = NotifierProvider<SessionController, SessionState>(
   SessionController.new,
 );
 
+/// Integration of the signed-in user's tenant; [IntegrationType.yok] when
+/// signed out.
+final integrationTypeProvider = Provider<IntegrationType>(
+  (ref) => ref.watch(
+    sessionProvider.select((s) => s.user?.integration ?? IntegrationType.yok),
+  ),
+);
+
 /// Id of the signed-in user; changes only on sign-in / sign-out, not when the
 /// session expires.
 final currentUserIdProvider = Provider<int?>(

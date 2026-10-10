@@ -31,6 +31,15 @@ final Map<String, ModuleDef> moduleRegistry = Map.unmodifiable({
       editButton: 'KAYDET',
       deleteButton: 'SIL',
     ),
+    subApi: const {
+      // The Adresler tab is granted apart from CariMain.
+      'adresler': ModuleApiPermissions(
+        pageCode: 'CariAdresler',
+        addButton: 'KAYDET',
+        editButton: 'KAYDET',
+        deleteButton: 'SIL',
+      ),
+    },
   ),
   'musteri': ModuleDef(
     'musteri',

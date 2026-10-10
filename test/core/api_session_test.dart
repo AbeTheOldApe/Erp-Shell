@@ -50,12 +50,18 @@ const _me = {
   },
 };
 
-FakeReply tokenReply(String token) =>
-    FakeReply.ok({'AccessToken': token, 'ExpiresIn': 900, 'TokenType': 'Bearer'});
+FakeReply tokenReply(String token) => FakeReply.ok({
+  'AccessToken': token,
+  'ExpiresIn': 900,
+  'TokenType': 'Bearer',
+});
 
 /// A server that issues `t1` on login and `t2` on refresh, and accepts
 /// `/things` only with `t2`.
-FutureOr<FakeReply> _server(RequestOptions o, {bool refreshWorks = true}) async {
+FutureOr<FakeReply> _server(
+  RequestOptions o, {
+  bool refreshWorks = true,
+}) async {
   switch (o.path) {
     case '/auth/login':
       return tokenReply('t1');

@@ -170,9 +170,7 @@ void main() {
       expect(find.text('Dışa aktar'), findsOneWidget);
     });
 
-    testWidgets('phone: primary as icon, the rest in overflow', (
-      tester,
-    ) async {
+    testWidgets('phone: primary as icon, the rest in overflow', (tester) async {
       await _pump(tester, scaffold(), const Size(400, 900));
       expect(find.text('Dışa aktar'), findsNothing);
       expect(find.byTooltip('Yeni'), findsOneWidget);
@@ -191,10 +189,11 @@ void main() {
             onPressed: () => showAdaptiveAppDialog<void>(
               context: context,
               title: 'Kalem',
-              content: (_) => const ResponsiveForm(
-                fields: [FormFieldSlot(TextField())],
-              ),
-              actions: (_) => [const TextButton(onPressed: null, child: Text('Kaydet'))],
+              content: (_) =>
+                  const ResponsiveForm(fields: [FormFieldSlot(TextField())]),
+              actions: (_) => [
+                const TextButton(onPressed: null, child: Text('Kaydet')),
+              ],
             ),
             child: const Text('aç'),
           ),
@@ -297,7 +296,9 @@ void main() {
       );
       await tester.enterText(find.byType(TextField), 'ahmet');
       await tester.pump(const Duration(milliseconds: 500));
-      expect(filters, [const GridFilter('musteri', FilterOp.contains, 'ahmet')]);
+      expect(filters, [
+        const GridFilter('musteri', FilterOp.contains, 'ahmet'),
+      ]);
       expect(find.text('Temizle'), findsOneWidget);
     });
 

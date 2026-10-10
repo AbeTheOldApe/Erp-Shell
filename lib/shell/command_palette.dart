@@ -128,7 +128,8 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.arrowDown): () => setState(
-          () => _selected = entries.isEmpty ? 0 : (selected + 1) % entries.length,
+          () =>
+              _selected = entries.isEmpty ? 0 : (selected + 1) % entries.length,
         ),
         const SingleActivator(LogicalKeyboardKey.arrowUp): () => setState(
           () => _selected = entries.isEmpty

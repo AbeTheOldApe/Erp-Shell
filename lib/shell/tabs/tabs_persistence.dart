@@ -44,14 +44,11 @@ class TabsPersistence {
       final json = jsonDecode(raw) as Map<String, dynamic>;
       return [
         for (final tab in json['tabs'] as List<dynamic>)
-          SavedTab(
-            (tab as Map<String, dynamic>)['moduleKey'] as String,
-            {
-              for (final entry
-                  in (tab['query'] as Map<String, dynamic>? ?? {}).entries)
-                entry.key: '${entry.value}',
-            },
-          ),
+          SavedTab((tab as Map<String, dynamic>)['moduleKey'] as String, {
+            for (final entry
+                in (tab['query'] as Map<String, dynamic>? ?? {}).entries)
+              entry.key: '${entry.value}',
+          }),
       ];
     } catch (_) {
       return const [];

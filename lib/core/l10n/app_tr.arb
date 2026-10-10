@@ -263,5 +263,35 @@
   "cariFieldTcKimlikNo": "TC kimlik no",
   "cariFieldRoller": "Roller",
   "cariFieldOtomatikEkstre": "Cari ekstre otomatik gönderilsin",
-  "cariFieldDurum": "Durum"
+  "cariFieldDurum": "Durum",
+  "cariTabGenel": "Genel",
+  "cariTabAdresler": "Adresler",
+  "adresSaveFirst": "Adres eklemek için önce cariyi kaydedin.",
+  "adresNew": "Yeni adres",
+  "adresEdit": "Adresi düzenle",
+  "adresEmpty": "Bu cariye ait adres yok.",
+  "adresFieldTipi": "Adres tipi",
+  "adresFieldIl": "İl",
+  "adresFieldIlce": "İlçe",
+  "adresFieldMahalle": "Mahalle / Köy / Mezra / Mevkii",
+  "adresFieldCadde": "Cadde / Sokak / Bucak / Mahalle",
+  "adresFieldDisKapi": "Dış kapı",
+  "adresFieldIcKapi": "İç kapı",
+  "adresFieldAdres": "Adres",
+  "adresFieldPostaKodu": "Posta kodu",
+  "adresAtLeastOne": "En az bir adres alanı doldurulmalıdır.",
+  "adresPostaKoduInvalid": "Posta kodu 5 rakamdan oluşmalıdır.",
+  "adresDiscardMessage": "Adres formundaki değişiklikler kaydedilmedi. Kapatırsanız kaybolacak.",
+  "adresSummaryDisKapi": "No: {value}",
+  "@adresSummaryDisKapi": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "adresSummaryIcKapi": "Daire: {value}",
+  "@adresSummaryIcKapi": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  }
 }

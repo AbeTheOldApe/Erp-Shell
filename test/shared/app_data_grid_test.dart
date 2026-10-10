@@ -18,12 +18,7 @@ typedef _Row = ({int id, String ad, double tutar, DateTime tarih});
 
 final _rows = <_Row>[
   for (var i = 1; i <= 30; i++)
-    (
-      id: i,
-      ad: 'Kayıt $i',
-      tutar: i * 1000.5,
-      tarih: DateTime(2026, 1, i),
-    ),
+    (id: i, ad: 'Kayıt $i', tutar: i * 1000.5, tarih: DateTime(2026, 1, i)),
 ];
 
 LocalGridDataSource<_Row> _source(List<_Row> rows) => LocalGridDataSource(

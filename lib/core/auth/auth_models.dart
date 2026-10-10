@@ -2,6 +2,25 @@ import 'package:flutter/foundation.dart';
 
 import 'permissions.dart';
 
+/// The tenant's accounting/ERP integration (`/me` → `Tenant.EntegrasyonTuru`,
+/// `docs/api-contract.md` §6A.1). It decides which address fields exist.
+enum IntegrationType {
+  yok('Yok'),
+  netsis('Netsis');
+
+  const IntegrationType(this.apiValue);
+
+  final String apiValue;
+
+  /// Unknown, empty or missing values are [yok].
+  static IntegrationType parse(Object? value) {
+    for (final type in values) {
+      if (type.apiValue == value) return type;
+    }
+    return yok;
+  }
+}
+
 @immutable
 class AppUser {
   const AppUser({
@@ -10,6 +29,7 @@ class AppUser {
     required this.displayName,
     this.roles = const [],
     this.grants,
+    this.integration = IntegrationType.yok,
   });
 
   factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
@@ -17,12 +37,16 @@ class AppUser {
     username: json['username'] as String? ?? '',
     displayName: json['displayName'] as String,
     roles: [for (final role in json['roles'] as List<dynamic>? ?? []) '$role'],
+    integration: IntegrationType.parse(json['integration']),
   );
 
   final int id;
   final String username;
   final String displayName;
   final List<String> roles;
+
+  /// Integration of the user's tenant; [IntegrationType.yok] when unknown.
+  final IntegrationType integration;
 
   /// Page and button grants from the real API's `/me`; `null` in mock mode,
   /// where the menu carries the permissions.
@@ -33,6 +57,7 @@ class AppUser {
     'username': username,
     'displayName': displayName,
     'roles': roles,
+    'integration': integration.apiValue,
   };
 }
 

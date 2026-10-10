@@ -14,16 +14,12 @@ bool downloadTextFile(String fileName, String content, String mimeType) {
         .getProperty<JSObject>('URL'.toJS)
         .callMethod<JSString>('createObjectURL'.toJS, blob);
     final document = globalContext.getProperty<JSObject>('document'.toJS);
-    final anchor = document.callMethod<JSObject>(
-      'createElement'.toJS,
-      'a'.toJS,
-    )
+    final anchor = document.callMethod<JSObject>('createElement'.toJS, 'a'.toJS)
       ..setProperty('href'.toJS, url)
       ..setProperty('download'.toJS, fileName.toJS);
-    document.getProperty<JSObject>('body'.toJS).callMethod<JSAny?>(
-      'appendChild'.toJS,
-      anchor,
-    );
+    document
+        .getProperty<JSObject>('body'.toJS)
+        .callMethod<JSAny?>('appendChild'.toJS, anchor);
     anchor.callMethod<JSAny?>('click'.toJS);
     anchor.callMethod<JSAny?>('remove'.toJS);
     globalContext

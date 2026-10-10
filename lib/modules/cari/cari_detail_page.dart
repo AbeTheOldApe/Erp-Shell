@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/session_controller.dart';
+import '../../core/l10n/generated/app_localizations.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/network/api_result.dart';
@@ -16,6 +17,8 @@ import '../../shared/states/empty_state.dart';
 import '../../shared/states/error_state.dart';
 import '../../shared/states/skeleton_loader.dart';
 import '../module_def.dart';
+import 'cari_adres_tab.dart';
+import 'cari_info_band.dart';
 import 'cari_messages.dart';
 import 'data/cari_models.dart';
 import 'data/cari_repository.dart';
@@ -80,6 +83,15 @@ class _CariDetailPageState extends ConsumerState<CariDetailPage> {
   bool _loading = false;
   bool _saving = false;
   bool _dirty = false;
+
+  /// An address form is open with unsaved changes.
+  bool _adresDirty = false;
+  bool _reportedDirty = false;
+
+  /// 0 = Genel, 1 = Adresler. The addresses are built on first visit and
+  /// then kept alive.
+  int _tab = 0;
+  bool _adreslerOpened = false;
 
   bool get _isNew => widget.id == null;
   bool get _netsisBagli => _loaded?.netsisBagli ?? false;
@@ -177,16 +189,27 @@ class _CariDetailPageState extends ConsumerState<CariDetailPage> {
   }
 
   void _markDirty() {
-    if (!_dirty) {
-      _dirty = true;
-      widget.onDirtyChanged(true);
-    }
+    _dirty = true;
+    _syncDirty();
     setState(() {});
   }
 
   void _markClean() {
     _dirty = false;
-    widget.onDirtyChanged(false);
+    _syncDirty();
+  }
+
+  void _setAdresDirty(bool value) {
+    _adresDirty = value;
+    _syncDirty();
+  }
+
+  /// The tab is dirty while the general form or an address form has changes.
+  void _syncDirty() {
+    final value = _dirty || _adresDirty;
+    if (value == _reportedDirty) return;
+    _reportedDirty = value;
+    widget.onDirtyChanged(value);
   }
 
   Cari _toCari() => Cari(
@@ -231,7 +254,7 @@ class _CariDetailPageState extends ConsumerState<CariDetailPage> {
   }
 
   Future<void> _save() async {
-    if (!_editable || _saving) return;
+    if (!_editable || _saving || _tab != 0) return;
     final l10n = context.l10n;
     _serverErrors = {};
     if (!(_form.currentState?.validate() ?? false)) return;
@@ -315,6 +338,43 @@ class _CariDetailPageState extends ConsumerState<CariDetailPage> {
     }
   }
 
+  /// Genel / Adresler switch. Adresler waits until the Cari is saved.
+  Widget _tabHeader(AppLocalizations l10n) {
+    final spacing = context.spacing;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(spacing.md, spacing.sm, spacing.md, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SegmentedButton<int>(
+            style: SegmentedButton.styleFrom(minimumSize: const Size(0, 48)),
+            showSelectedIcon: false,
+            segments: [
+              ButtonSegment(value: 0, label: Text(l10n.cariTabGenel)),
+              ButtonSegment(
+                value: 1,
+                label: Text(l10n.cariTabAdresler),
+                enabled: !_isNew,
+              ),
+            ],
+            selected: {_tab},
+            onSelectionChanged: (selection) => setState(() {
+              _tab = selection.first;
+              if (_tab == 1) _adreslerOpened = true;
+            }),
+          ),
+          if (_isNew) ...[
+            SizedBox(height: spacing.xs),
+            Text(
+              l10n.adresSaveFirst,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -382,17 +442,178 @@ class _CariDetailPageState extends ConsumerState<CariDetailPage> {
               : null,
         );
 
+    final showAdresler = widget.ctx.subPermissions('adresler').canView;
+    final onGeneral = _tab == 0;
+
+    final general = CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyS, control: true): _save,
+      },
+      child: ListView(
+        padding: EdgeInsets.all(spacing.md),
+        children: [
+          if (_netsisBagli) ...[
+            CariInfoBand(message: l10n.cariNetsisReadonly),
+            SizedBox(height: spacing.md),
+          ],
+          ResponsiveForm(
+            key: _form,
+            onChanged: _markDirty,
+            fields: [
+              FormFieldSlot(
+                textField(
+                  _unvan,
+                  l10n.cariFieldUnvan,
+                  CariLimits.unvan,
+                  field: CariField.unvan,
+                  required: true,
+                  autofocus: _isNew,
+                ),
+                span: 2,
+              ),
+              FormFieldSlot(
+                textField(
+                  _kod,
+                  l10n.cariFieldKod,
+                  CariLimits.kod,
+                  field: CariField.kod,
+                ),
+              ),
+              FormFieldSlot(
+                textField(_cari, l10n.cariFieldCari, CariLimits.cari),
+                span: 2,
+              ),
+              FormFieldSlot(
+                textField(
+                  _kisaUnvan,
+                  l10n.cariFieldKisaUnvan,
+                  CariLimits.kisaUnvan,
+                ),
+              ),
+              FormFieldSlot(
+                textField(
+                  _vergiDairesi,
+                  l10n.cariFieldVergiDairesi,
+                  CariLimits.vergiDairesi,
+                ),
+              ),
+              FormFieldSlot(
+                textField(
+                  _vergiNo,
+                  l10n.cariFieldVergiNo,
+                  CariLimits.vergiNo,
+                  field: CariField.vergiNo,
+                ),
+              ),
+              FormFieldSlot(
+                textField(
+                  _tcKimlikNo,
+                  l10n.cariFieldTcKimlikNo,
+                  CariLimits.tcKimlikNo,
+                  field: CariField.tcKimlikNo,
+                ),
+              ),
+              FormFieldSlot(
+                textField(
+                  _telefon,
+                  l10n.cariFieldTelefon,
+                  CariLimits.telefon,
+                  keyboardType: TextInputType.phone,
+                ),
+              ),
+              FormFieldSlot(
+                textField(
+                  _faks,
+                  l10n.cariFieldFaks,
+                  CariLimits.faks,
+                  keyboardType: TextInputType.phone,
+                ),
+              ),
+              FormFieldSlot(
+                textField(
+                  _ePosta,
+                  l10n.cariFieldEposta,
+                  CariLimits.ePosta,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+              ),
+              FormFieldSlot(
+                textField(
+                  _web,
+                  l10n.cariFieldWeb,
+                  CariLimits.webAdresi,
+                  keyboardType: TextInputType.url,
+                ),
+              ),
+              FormFieldSlot(
+                InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: l10n.cariFieldDurum,
+                    border: InputBorder.none,
+                  ),
+                  child: Text(
+                    (_loaded?.aktif ?? true)
+                        ? l10n.cariStatusActive
+                        : l10n.cariStatusPassive,
+                  ),
+                ),
+              ),
+              FormFieldSlot.full(
+                Wrap(
+                  spacing: spacing.lg,
+                  children: [
+                    SizedBox(
+                      width: 220,
+                      child: checkbox(
+                        l10n.cariRoleMusteri,
+                        _musteri,
+                        (v) => _musteri = v,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 220,
+                      child: checkbox(
+                        l10n.cariRoleUrunTedarikci,
+                        _urunTedarikcisi,
+                        (v) => _urunTedarikcisi = v,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 240,
+                      child: checkbox(
+                        l10n.cariRoleHizmetTedarikci,
+                        _hizmetTedarikcisi,
+                        (v) => _hizmetTedarikcisi = v,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 320,
+                      child: checkbox(
+                        l10n.cariFieldOtomatikEkstre,
+                        _otomatikEkstre,
+                        (v) => _otomatikEkstre = v,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
     return ResponsiveScaffold(
       title: breadcrumb,
       actions: [
-        if (_canDelete)
+        if (onGeneral && _canDelete)
           PageAction(
             icon: Icons.delete_outline,
             label: l10n.actionDelete,
             onPressed: _saving ? null : _delete,
             destructive: true,
           ),
-        if (editable)
+        if (onGeneral && editable)
           PageAction(
             icon: Icons.save_outlined,
             label: l10n.actionSave,
@@ -400,195 +621,34 @@ class _CariDetailPageState extends ConsumerState<CariDetailPage> {
             primary: true,
           ),
       ],
-      body: CallbackShortcuts(
-        bindings: {
-          const SingleActivator(LogicalKeyboardKey.keyS, control: true): _save,
-        },
-        child: ListView(
-          padding: EdgeInsets.all(spacing.md),
-          children: [
-            if (_netsisBagli) ...[
-              _InfoBand(message: l10n.cariNetsisReadonly),
-              SizedBox(height: spacing.md),
-            ],
-            ResponsiveForm(
-              key: _form,
-              onChanged: _markDirty,
-              fields: [
-                FormFieldSlot(
-                  textField(
-                    _unvan,
-                    l10n.cariFieldUnvan,
-                    CariLimits.unvan,
-                    field: CariField.unvan,
-                    required: true,
-                    autofocus: _isNew,
-                  ),
-                  span: 2,
-                ),
-                FormFieldSlot(
-                  textField(
-                    _kod,
-                    l10n.cariFieldKod,
-                    CariLimits.kod,
-                    field: CariField.kod,
-                  ),
-                ),
-                FormFieldSlot(
-                  textField(_cari, l10n.cariFieldCari, CariLimits.cari),
-                  span: 2,
-                ),
-                FormFieldSlot(
-                  textField(
-                    _kisaUnvan,
-                    l10n.cariFieldKisaUnvan,
-                    CariLimits.kisaUnvan,
-                  ),
-                ),
-                FormFieldSlot(
-                  textField(
-                    _vergiDairesi,
-                    l10n.cariFieldVergiDairesi,
-                    CariLimits.vergiDairesi,
-                  ),
-                ),
-                FormFieldSlot(
-                  textField(
-                    _vergiNo,
-                    l10n.cariFieldVergiNo,
-                    CariLimits.vergiNo,
-                    field: CariField.vergiNo,
-                  ),
-                ),
-                FormFieldSlot(
-                  textField(
-                    _tcKimlikNo,
-                    l10n.cariFieldTcKimlikNo,
-                    CariLimits.tcKimlikNo,
-                    field: CariField.tcKimlikNo,
-                  ),
-                ),
-                FormFieldSlot(
-                  textField(
-                    _telefon,
-                    l10n.cariFieldTelefon,
-                    CariLimits.telefon,
-                    keyboardType: TextInputType.phone,
-                  ),
-                ),
-                FormFieldSlot(
-                  textField(
-                    _faks,
-                    l10n.cariFieldFaks,
-                    CariLimits.faks,
-                    keyboardType: TextInputType.phone,
-                  ),
-                ),
-                FormFieldSlot(
-                  textField(
-                    _ePosta,
-                    l10n.cariFieldEposta,
-                    CariLimits.ePosta,
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                ),
-                FormFieldSlot(
-                  textField(
-                    _web,
-                    l10n.cariFieldWeb,
-                    CariLimits.webAdresi,
-                    keyboardType: TextInputType.url,
-                  ),
-                ),
-                FormFieldSlot(
-                  InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: l10n.cariFieldDurum,
-                      border: InputBorder.none,
-                    ),
-                    child: Text(
-                      (_loaded?.aktif ?? true)
-                          ? l10n.cariStatusActive
-                          : l10n.cariStatusPassive,
-                    ),
-                  ),
-                ),
-                FormFieldSlot.full(
-                  Wrap(
-                    spacing: spacing.lg,
+      body: showAdresler
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _tabHeader(l10n),
+                Expanded(
+                  child: IndexedStack(
+                    index: _tab,
+                    sizing: StackFit.expand,
                     children: [
-                      SizedBox(
-                        width: 220,
-                        child: checkbox(
-                          l10n.cariRoleMusteri,
-                          _musteri,
-                          (v) => _musteri = v,
-                        ),
-                      ),
-                      SizedBox(
-                        width: 220,
-                        child: checkbox(
-                          l10n.cariRoleUrunTedarikci,
-                          _urunTedarikcisi,
-                          (v) => _urunTedarikcisi = v,
-                        ),
-                      ),
-                      SizedBox(
-                        width: 240,
-                        child: checkbox(
-                          l10n.cariRoleHizmetTedarikci,
-                          _hizmetTedarikcisi,
-                          (v) => _hizmetTedarikcisi = v,
-                        ),
-                      ),
-                      SizedBox(
-                        width: 320,
-                        child: checkbox(
-                          l10n.cariFieldOtomatikEkstre,
-                          _otomatikEkstre,
-                          (v) => _otomatikEkstre = v,
-                        ),
-                      ),
+                      ExcludeFocus(excluding: !onGeneral, child: general),
+                      if (_adreslerOpened)
+                        ExcludeFocus(
+                          excluding: onGeneral,
+                          child: CariAdresTab(
+                            cariId: widget.id!,
+                            permissions: widget.ctx.subPermissions('adresler'),
+                            onDirtyChanged: _setAdresDirty,
+                          ),
+                        )
+                      else
+                        const SizedBox.shrink(),
                     ],
                   ),
                 ),
               ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Permanent information band at the top of a form.
-class _InfoBand extends StatelessWidget {
-  const _InfoBand({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final spacing = context.spacing;
-    return Container(
-      padding: EdgeInsets.all(spacing.md),
-      decoration: BoxDecoration(
-        color: scheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.link, color: scheme.onSecondaryContainer),
-          SizedBox(width: spacing.sm),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(color: scheme.onSecondaryContainer),
-            ),
-          ),
-        ],
-      ),
+            )
+          : general,
     );
   }
 }

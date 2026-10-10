@@ -189,9 +189,8 @@ class _SiparisDetailPageState extends ConsumerState<SiparisDetailPage> {
     setState(() => _saving = true);
     try {
       final saved = await _session.guard(
-        () => _isNew
-            ? _repository.create(siparis)
-            : _repository.update(siparis),
+        () =>
+            _isNew ? _repository.create(siparis) : _repository.update(siparis),
       );
       if (!mounted) return;
       _markClean();
@@ -246,10 +245,7 @@ class _SiparisDetailPageState extends ConsumerState<SiparisDetailPage> {
 
     final breadcrumb = Breadcrumb(
       items: [
-        BreadcrumbItem(
-          widget.ctx.title,
-          onTap: () => widget.onBack(),
-        ),
+        BreadcrumbItem(widget.ctx.title, onTap: () => widget.onBack()),
         BreadcrumbItem(_isNew ? l10n.siparisNew : (_loaded?.no ?? '…')),
       ],
     );
@@ -324,7 +320,8 @@ class _SiparisDetailPageState extends ConsumerState<SiparisDetailPage> {
                     initialValue: _tarih,
                     readOnly: !editable,
                     onChanged: (date) => _tarih = date,
-                    validator: (v) => v == null ? l10n.validationRequired : null,
+                    validator: (v) =>
+                        v == null ? l10n.validationRequired : null,
                   ),
                 ),
                 FormFieldSlot(

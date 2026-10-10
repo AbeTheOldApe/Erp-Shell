@@ -81,6 +81,9 @@ FakeReply tokenReply(String token) => FakeReply.ok({
 Map<String, Object?> meData({
   List<String> pages = const [],
   Map<String, List<String>> buttons = const {},
+
+  /// `Tenant.EntegrasyonTuru`; the `Tenant` object is left out when null.
+  Object? integration,
 }) => {
   'Kullanici': {
     'AppUserId': 13,
@@ -89,6 +92,7 @@ Map<String, Object?> meData({
     'FullName': '',
     'Email': 'e@x.com',
   },
+  if (integration != null) 'Tenant': {'EntegrasyonTuru': integration},
   'Ortam': 'Test',
   'Menu': [],
   'Yetkiler': {'Pages': pages, 'Buttons': buttons},

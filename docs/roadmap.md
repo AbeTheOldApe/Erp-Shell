@@ -183,6 +183,22 @@ Gerçek modun sözleşmesi `docs/api-contract.md`'dir (`menu-schema.md`'deki ilg
 
 **Kararlar (Faz 4):** Token depolama yeniden değerlendirmesi karara bağlandı: access token bellekte, refresh token `httpOnly` cookie (bkz. `CLAUDE.md`).
 
+### 4.6 Cari adresleri
+
+Sözleşme: `docs/api-contract.md` §6A. Mock mod eskisi gibi çalışır.
+
+- [x] Oturum: `/me` → `Data.Tenant.EntegrasyonTuru` (`Yok` | `Netsis`; bilinmeyen/boş → `Yok`) oturum durumunda (`AppUser.integration`, `integrationTypeProvider`). Mock: `yonetici` = Netsis, `satis` ve `depo` = Yok
+- [x] Alt yetki: `ModuleDef.subApi` + `ModuleContext.subPermissions(name)`; Cari için `adresler` → `CariAdresler` (`KAYDET`/`SIL`), `CariMain`'den bağımsız. Mock modda modülün yetkisini izler
+- [x] `CariAdresRepository` (soyut) + `MockCariAdresRepository` + `HttpCariAdresRepository`; adres tipleri oturum başına bir kez (`adresTipleriProvider`, kullanıcı değişince/çıkışta temizlenir); PascalCase alan adları yalnızca Http katmanında
+- [x] Cari detayında Genel / Adresler sekmeleri (modül içi; yeni shell sekmesi yok). Yeni cari için Adresler devre dışı + açıklama; ilk kayıttan sonra etkin
+- [x] Adres listesi (kart), form (`showAdaptiveAppDialog` + `ResponsiveForm`): kümeye göre alanlar, istemci doğrulaması, `NetsisBagliMi` → düğmeler gizli + bilgi bandı, hata kodları (1002/1003 alanda, 1004/1005/1203 bilgi + yenile), kaydedilmemiş değişiklikte kapatmadan önce onay (`showAdaptiveAppDialog(onWillClose:)`; açık form sekmeyi de kirli yapar)
+
+**Kabul:** Mock modda iki form (Netsis / Yok) denenebilir; gerçek API sözleşmesine göre istek gövdeleri doğru.
+
+**Test edilenler (4.6):** `flutter analyze` temiz, `flutter test` tümü geçti. `test/modules/cari_adres_test.dart`: `EntegrasyonTuru` okuma (Netsis/Yok, bilinmeyen/boş/eksik → Yok) ve mock kullanıcılar; kümeye göre form alanları (Yok / Netsis); istemci doğrulaması (Netsis'te Adres zorunlu, PostaKodu 5 rakam, kümede en az bir alan, adres tipi zorunlu, uzunluklar); `MessageCode` → görünüm; Http isteği (yalnızca kümenin alanları gönderilir, güncellemede `CariAdresId`); mock ekle → listele → düzenle → sil; kümeye ait olmayan alanlar güncellemede korunur; alt yetkiye göre sekme ve düğme görünürlüğü; `NetsisBagliMi` → düğmeler gizli; yeni cari → sekme devre dışı, kayıttan sonra etkin; adres tipleri oturum başına bir kez; değişmiş formu kapatmadan önce onay.
+
+**Notlar:** Dağıtım yapılmadı (4.6 test sunucusunda denenmedi). `ModuleContext`'e `subPermissions` eklendi.
+
 ## Açık tasarım konuları
 
 Fazların dışındadır; başlanmadı.

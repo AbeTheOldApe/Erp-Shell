@@ -88,7 +88,11 @@ class HttpAuthRepository implements AuthRepository {
     final userName = user['UserName'] as String? ?? '';
     final fullName = (user['FullName'] as String? ?? '').trim();
     final grants = map['Yetkiler'];
+    final tenant = map['Tenant'];
     return AppUser(
+      integration: IntegrationType.parse(
+        tenant is Map<String, dynamic> ? tenant['EntegrasyonTuru'] : null,
+      ),
       id: user['AppUserId'] as int,
       username: userName,
       displayName: fullName.isEmpty ? userName : fullName,

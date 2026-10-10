@@ -39,7 +39,10 @@ Future<void> _go(WidgetTester tester, String location) async {
 
 Future<void> _openFirstOrderInTable(WidgetTester tester) async {
   final cell = find
-      .descendant(of: find.byType(TrinaGrid), matching: find.textContaining('SP-'))
+      .descendant(
+        of: find.byType(TrinaGrid),
+        matching: find.textContaining('SP-'),
+      )
       .first;
   await tester.tap(cell);
   await tester.pump(const Duration(milliseconds: 50));
@@ -50,7 +53,10 @@ Future<void> _openFirstOrderInTable(WidgetTester tester) async {
 void main() {
   test('mock orders API: filter, sort and page like the contract', () async {
     final repo = MockSiparisRepository(
-      backend: MockBackend(minLatency: Duration.zero, maxLatency: Duration.zero),
+      backend: MockBackend(
+        minLatency: Duration.zero,
+        maxLatency: Duration.zero,
+      ),
       accessToken: () => null,
     );
     // No token → 401, like the real API.
@@ -75,7 +81,10 @@ void main() {
     expect(page.items, hasLength(lessThanOrEqualTo(10)));
     expect(page.items.every((s) => s.durum == SiparisDurum.iptal), isTrue);
     for (var i = 1; i < page.items.length; i++) {
-      expect(page.items[i - 1].tutar, greaterThanOrEqualTo(page.items[i].tutar));
+      expect(
+        page.items[i - 1].tutar,
+        greaterThanOrEqualTo(page.items[i].tutar),
+      );
     }
 
     final created = await authed.create(
@@ -122,10 +131,12 @@ void main() {
     expect(find.text('Sil'), findsNothing);
     expect(find.text('Kalem ekle'), findsNothing);
     final musteri = tester.widget<TextField>(
-      find.descendant(
-        of: find.byType(SiparisDetailPage),
-        matching: find.byType(TextField),
-      ).first,
+      find
+          .descendant(
+            of: find.byType(SiparisDetailPage),
+            matching: find.byType(TextField),
+          )
+          .first,
     );
     expect(musteri.readOnly, isTrue);
   });
@@ -144,10 +155,12 @@ void main() {
     await _openSiparis(tester);
     await _openFirstOrderInTable(tester);
 
-    final musteri = find.descendant(
-      of: find.byType(SiparisDetailPage),
-      matching: find.byType(TextField),
-    ).first;
+    final musteri = find
+        .descendant(
+          of: find.byType(SiparisDetailPage),
+          matching: find.byType(TextField),
+        )
+        .first;
     await tester.enterText(musteri, 'Değişti A.Ş.');
     await tester.pumpAndSettle();
 
@@ -175,10 +188,12 @@ void main() {
     await _openSiparis(tester);
     await _openFirstOrderInTable(tester);
     await tester.enterText(
-      find.descendant(
-        of: find.byType(SiparisDetailPage),
-        matching: find.byType(TextField),
-      ).first,
+      find
+          .descendant(
+            of: find.byType(SiparisDetailPage),
+            matching: find.byType(TextField),
+          )
+          .first,
       'x',
     );
     await tester.pumpAndSettle();
@@ -213,10 +228,12 @@ void main() {
     await pumpApp(tester);
     await _go(tester, '/m/siparis?id=5');
     await tester.enterText(
-      find.descendant(
-        of: find.byType(SiparisDetailPage),
-        matching: find.byType(TextField),
-      ).first,
+      find
+          .descendant(
+            of: find.byType(SiparisDetailPage),
+            matching: find.byType(TextField),
+          )
+          .first,
       'Yeni Ad Ltd.',
     );
     await tester.tap(find.text('Kaydet'));
@@ -253,10 +270,12 @@ void main() {
     expect(find.text('En az bir kalem ekleyin'), findsOneWidget);
 
     await tester.enterText(
-      find.descendant(
-        of: find.byType(SiparisDetailPage),
-        matching: find.byType(TextField),
-      ).first,
+      find
+          .descendant(
+            of: find.byType(SiparisDetailPage),
+            matching: find.byType(TextField),
+          )
+          .first,
       'Yeni Müşteri',
     );
     await tester.tap(find.text('Kalem ekle'));

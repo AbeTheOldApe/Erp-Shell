@@ -38,10 +38,9 @@ class MenuTreeController extends AsyncNotifier<List<MenuNode>> {
   }
 }
 
-final menuProvider =
-    AsyncNotifierProvider<MenuTreeController, List<MenuNode>>(
-      MenuTreeController.new,
-    );
+final menuProvider = AsyncNotifierProvider<MenuTreeController, List<MenuNode>>(
+  MenuTreeController.new,
+);
 
 /// Loaded menu (kept while reloading), or an empty list.
 final menuNodesProvider = Provider<List<MenuNode>>((ref) {
@@ -50,12 +49,10 @@ final menuNodesProvider = Provider<List<MenuNode>>((ref) {
 });
 
 /// Whether the menu has been loaded for the current user.
-final menuLoadedProvider = Provider<bool>(
-  (ref) {
-    final menu = ref.watch(menuProvider);
-    return menu.hasValue && !menu.isLoading;
-  },
-);
+final menuLoadedProvider = Provider<bool>((ref) {
+  final menu = ref.watch(menuProvider);
+  return menu.hasValue && !menu.isLoading;
+});
 
 /// Text in the menu search box. Survives layout changes.
 class MenuSearchController extends Notifier<String> {

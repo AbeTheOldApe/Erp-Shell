@@ -16,10 +16,8 @@ enum FilterOp {
 class GridSort {
   const GridSort(this.field, {this.descending = false});
 
-  factory GridSort.fromJson(Map<String, dynamic> json) => GridSort(
-    json['field'] as String,
-    descending: json['dir'] == 'desc',
-  );
+  factory GridSort.fromJson(Map<String, dynamic> json) =>
+      GridSort(json['field'] as String, descending: json['dir'] == 'desc');
 
   final String field;
   final bool descending;

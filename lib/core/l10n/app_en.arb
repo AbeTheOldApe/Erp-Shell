@@ -223,5 +223,35 @@
   "cariFieldTcKimlikNo": "National ID",
   "cariFieldRoller": "Roles",
   "cariFieldOtomatikEkstre": "Send account statement automatically",
-  "cariFieldDurum": "Status"
+  "cariFieldDurum": "Status",
+  "cariTabGenel": "General",
+  "cariTabAdresler": "Addresses",
+  "adresSaveFirst": "Save the account first to add addresses.",
+  "adresNew": "New address",
+  "adresEdit": "Edit address",
+  "adresEmpty": "This account has no addresses.",
+  "adresFieldTipi": "Address type",
+  "adresFieldIl": "Province",
+  "adresFieldIlce": "District",
+  "adresFieldMahalle": "Neighborhood / Village / Locality",
+  "adresFieldCadde": "Street / Avenue",
+  "adresFieldDisKapi": "Building no",
+  "adresFieldIcKapi": "Unit no",
+  "adresFieldAdres": "Address",
+  "adresFieldPostaKodu": "Postal code",
+  "adresAtLeastOne": "Fill in at least one address field.",
+  "adresPostaKoduInvalid": "The postal code must be 5 digits.",
+  "adresDiscardMessage": "The changes in the address form are not saved. They will be lost if you close it.",
+  "adresSummaryDisKapi": "No: {value}",
+  "@adresSummaryDisKapi": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "adresSummaryIcKapi": "Unit: {value}",
+  "@adresSummaryIcKapi": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  }
 }

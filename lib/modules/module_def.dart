@@ -14,6 +14,7 @@ class ModuleDef {
     this.load,
     this.home = false,
     this.api,
+    this.subApi = const {},
   });
 
   final String key;
@@ -31,6 +32,11 @@ class ModuleDef {
   /// Page and button codes of the real API that decide this module's
   /// permissions. `null` for modules that exist only in mock mode.
   final ModuleApiPermissions? api;
+
+  /// Sub-permissions of parts of the module that are granted independently
+  /// of the module's own page code (e.g. a tab), by name. See
+  /// [ModuleContext.subPermissions].
+  final Map<String, ModuleApiPermissions> subApi;
 }
 
 /// What the shell provides to a module. Modules never import each other;
@@ -43,6 +49,11 @@ abstract class ModuleContext {
 
   /// Permissions of the current user on this module (from the menu).
   ModulePermissions get permissions;
+
+  /// Permissions of the user on a part of the module registered under
+  /// [name] in [ModuleDef.subApi]. Where the API does not grant by page code
+  /// (mock mode) or [name] is unknown, these are the module's [permissions].
+  ModulePermissions subPermissions(String name);
 
   /// URL query parameters the module was opened with.
   Map<String, String> get query;

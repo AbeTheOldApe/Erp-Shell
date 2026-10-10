@@ -71,8 +71,11 @@ class LocalGridDataSource<T> implements GridDataSource<T> {
     if (b == null) return 1;
     if (a is DateTime && b is DateTime) {
       // Date filters compare by day.
-      return DateTime(a.year, a.month, a.day)
-          .compareTo(DateTime(b.year, b.month, b.day));
+      return DateTime(
+        a.year,
+        a.month,
+        a.day,
+      ).compareTo(DateTime(b.year, b.month, b.day));
     }
     if (a is num && b is num) return a.compareTo(b);
     return turkishFold('$a').compareTo(turkishFold('$b'));

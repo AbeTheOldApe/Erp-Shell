@@ -23,7 +23,11 @@ class MockBackend {
   static const accessTokenLifetime = Duration(seconds: 900);
 
   static const users = <String, MockUser>{
-    'yonetici': MockUser(1, 'Yönetici Kullanıcı', ['Yonetici']),
+    // Yonetici is on a Netsis tenant, the others on one without integration,
+    // so both address forms can be tried in the demo.
+    'yonetici': MockUser(1, 'Yönetici Kullanıcı', [
+      'Yonetici',
+    ], integration: 'Netsis'),
     'depo': MockUser(2, 'Depo Sorumlusu', ['Depo']),
     'satis': MockUser(3, 'Satış Temsilcisi', ['Satis']),
   };
@@ -37,7 +41,8 @@ class MockBackend {
   /// Simulated network delay.
   Future<void> latency() {
     final spread = _maxLatency.inMilliseconds - _minLatency.inMilliseconds;
-    final ms = _minLatency.inMilliseconds +
+    final ms =
+        _minLatency.inMilliseconds +
         (spread > 0 ? _random.nextInt(spread + 1) : 0);
     return Future<void>.delayed(Duration(milliseconds: ms));
   }
@@ -103,6 +108,7 @@ class MockBackend {
         'id': user.id,
         'displayName': user.displayName,
         'roles': user.roles,
+        'integration': user.integration,
       },
     };
   }
@@ -115,9 +121,17 @@ class MockBackend {
 }
 
 class MockUser {
-  const MockUser(this.id, this.displayName, this.roles);
+  const MockUser(
+    this.id,
+    this.displayName,
+    this.roles, {
+    this.integration = 'Yok',
+  });
 
   final int id;
+
+  /// `Tenant.EntegrasyonTuru` of the user's tenant.
+  final String integration;
   final String displayName;
   final List<String> roles;
 }

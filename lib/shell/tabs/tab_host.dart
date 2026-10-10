@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/auth/session_controller.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../data/menu/menu_tree.dart';
 import '../../modules/module_def.dart';
@@ -142,6 +143,15 @@ class _ModuleHostState extends ConsumerState<ModuleHost>
           moduleKey,
         )?.permissions ??
         ModulePermissions.none;
+  }
+
+  @override
+  ModulePermissions subPermissions(String name) {
+    final sub = ref.read(moduleRegistryProvider)[moduleKey]?.subApi[name];
+    final grants = ref.read(sessionProvider).user?.grants;
+    // Mock mode has no grants: the menu's permissions stand for the part.
+    if (sub == null || grants == null) return permissions;
+    return sub.resolve(grants);
   }
 
   @override

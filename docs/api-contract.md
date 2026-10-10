@@ -166,6 +166,15 @@ API yetkisi "sayfa kodu + buton kodları" biçimindedir. Shell'in `ModulePermiss
 |---|---|---|---|---|---|
 | `cari` | Tanımlar › Cariler | `CariMain` | `KAYDET` | `KAYDET` | `SIL` |
 
+Bir modülün bir parçası (ör. sekme) kendi sayfa koduyla ayrıca yetkilendirilebilir; bu, modül kaydındaki
+alt yetki tanımıyla (`ModuleDef.subApi`) yapılır ve ana sayfa kodundan bağımsızdır:
+
+| moduleKey | Alt yetki | pageCode | canAdd | canEdit | canDelete |
+|---|---|---|---|---|---|
+| `cari` | `adresler` (Adresler sekmesi) | `CariAdresler` | `KAYDET` | `KAYDET` | `SIL` |
+
+Mock modda `Yetkiler` yoktur; alt yetki modülün menüden gelen yetkisini izler.
+
 Menü başlıkları ve grup adı ARB'den gelir; kullanıcı değiştirmek isterse yalnızca ARB ve menü tanımı
 güncellenir.
 
@@ -270,6 +279,113 @@ Soft delete. Başarıda `IsSuccessful: true`.
 | 1205 | Finansal hareket nedeniyle silinemez | Bilgi mesajı |
 
 `NetsisBagliMi: true` olan cari formda **salt okunur** açılır; Kaydet ve Sil gizlenir.
+
+## 6A. Cari adresleri API'si
+
+Bu bölüm §6'daki Cari sözleşmesinin devamıdır; zarf, hata kodları, oturum ve başlık kuralları orada tanımlıdır.
+Alan adları PascalCase'tir. Tenant ayrımı sunucuda yapılır: kullanıcı yalnızca kendi tenant'ının carilerinin adreslerini görür ve
+değiştirir; başka tenant'a ait bir cari ya da adres `1004` döner.
+
+### 6A.1 Tenant'ın entegrasyon türü ve alan kümesi
+
+`GET /api/v1/me` cevabına `Data.Tenant` eklenmiştir:
+
+```json
+"Tenant": { "EntegrasyonTuru": "Yok" }
+```
+
+| EntegrasyonTuru | Anlamı | Adres formunda gösterilen alanlar |
+|---|---|---|
+| `Yok` | Muhasebe/ERP entegrasyonu yok (ör. Cagkan) | `Il`, `Ilce`, `MahalleKoyMezraMevkii`, `CaddeSokakBucakMahalle`, `DisKapi`, `IcKapi` |
+| `Netsis` | Netsis entegrasyonu var | `Il`, `Ilce`, `Adres`, `PostaKodu` |
+
+Shell bu değeri oturumla birlikte tutar ve adres formunu ona göre kurar. Alan kümesine ait olmayan bir alan gönderilirse sunucu onu
+**yok sayar** (yeni kayıtta NULL kalır, güncellemede mevcut değer korunur); istemci yine de yalnızca kendi kümesinin alanlarını gönderir.
+Değer bilinmiyorsa ya da tanınmıyorsa `Yok` kümesi kullanılır.
+
+### 6A.2 Sayfa ve buton kodları
+
+| Sayfa kodu | Butonlar | Kullanım |
+|---|---|---|
+| `CariAdresler` | `KAYDET`, `SIL` | Adres listesi, okuma: sayfa kodu yeter. Kaydet: `KAYDET`. Sil: `SIL` |
+
+`CariAdresler`, `CariMain`'den bağımsız verilir: kullanıcıda `CariMain` olup `CariAdresler` yoksa adresler sekmesi görünmez.
+`canView` = `Pages` içinde `CariAdresler`; `canAdd` ve `canEdit` = `Buttons.CariAdresler` içinde `KAYDET`; `canDelete` = `SIL`.
+
+### 6A.3 Uç noktalar
+
+#### 6A.3.1 `GET /api/v1/tml/cari/{CariId}/adresler` — carinin adresleri (yetki: `CariAdresler`)
+
+```json
+{ "IsSuccessful": true, "MessageCode": 200, "Message": "İşlem başarılı.",
+  "Data": {
+    "Items": [ {
+      "CariAdresId": 5828, "CariId": 5574, "AdresTipiId": 1, "AdresTipi": "…",
+      "Il": "Izmir", "Ilce": "Bornova", "MahalleKoyMezraMevkii": "Test Mah.", "CaddeSokakBucakMahalle": null,
+      "DisKapi": null, "IcKapi": null, "Adres": null, "PostaKodu": null } ],
+    "NetsisBagliMi": false } }
+```
+
+- Sayfalama yok; bir carinin adres sayısı küçüktür.
+- Yalnızca silinmemiş ve geçerli (`Status = 'Valid'`) adresler gelir. Sıra `CariAdresId` artan.
+- `NetsisBagliMi: true` ise carinin adresleri **salt okunur**dur (aşağıda `1203`).
+- Cari yoksa ya da başka tenant'a aitse: `IsSuccessful: false`, `1004`.
+
+#### 6A.3.2 `GET /api/v1/tml/cari-adres/{CariAdresId}` — tek adres (yetki: `CariAdresler`)
+
+`Data`: §6A.3.1'deki bir öğenin alanları + `NetsisBagliMi`. Yoksa ya da başka tenant'a aitse `1004`.
+
+#### 6A.3.3 `POST /api/v1/tml/cari-adres` — kaydet (yetki: `CariAdresler` + `KAYDET`)
+
+`CariAdresId` yok ya da `0` → yeni adres; dolu → güncelleme (`CariId` değiştirilemez, `1003`).
+
+| Alan | Kural |
+|---|---|
+| `CariAdresId` | int ≥ 0, opsiyonel |
+| `CariId` | **zorunlu**, int > 0 |
+| `AdresTipiId` | **zorunlu**; §6A.3.5'teki listede bulunmalı (`1003`) |
+| `Il`, `Ilce` | ≤ 25 |
+| `MahalleKoyMezraMevkii`, `CaddeSokakBucakMahalle` | ≤ 50 |
+| `DisKapi`, `IcKapi` | ≤ 25 |
+| `Adres` | ≤ 255 |
+| `PostaKodu` | ≤ 5; doluysa tam 5 rakam (`1003`) |
+
+Kümeye göre ek kurallar:
+
+- Tenant'ın alan kümesinden **en az bir alan** dolu olmalı (boşluk sayılmaz), yoksa `1002` ("En az bir adres alanı doldurulmalıdır.").
+- `Netsis` kümesinde `Adres` zorunludur (`1002`, "Adres zorunludur.").
+- Metinler sunucuda kırpılır; boş metin NULL olur.
+
+Başarı: `Data: { "CariAdresId": 5828 }`.
+
+#### 6A.3.4 `DELETE /api/v1/tml/cari-adres/{CariAdresId}` — sil (yetki: `CariAdresler` + `SIL`)
+
+Soft delete. Başarıda `IsSuccessful: true`, `Data: { "CariAdresId": … }`. Zaten silinmişse `1005`; yoksa `1004`.
+
+#### 6A.3.5 `GET /api/v1/tml/adres-tipleri` — adres tipi listesi (yetki: `CariAdresler`)
+
+```json
+{ "IsSuccessful": true, "MessageCode": 200, "Message": "İşlem başarılı.",
+  "Data": { "Items": [ { "AdresTipiId": 1, "AdresTipi": "…" }, { "AdresTipiId": 2, "AdresTipi": "…" } ] } }
+```
+
+Adres tipleri bütün tenant'larda ortak bir sabit listedir (tenant'a göre değişmez). İstemci listeyi oturum başına bir kez çeker ve
+form açılırken seçenek olarak kullanır; adları kodda sabitlemez.
+
+### 6A.4 Cari adreslerine özgü kodlar
+
+| Kod | Anlam | Shell davranışı |
+|---|---|---|
+| 1002 | Zorunlu alan eksik (adres tipi, adres alanı, Netsis'te `Adres`) | Mesaj formda gösterilir; `Adres` zorunluluğu ilgili alanda |
+| 1003 | Geçersiz değer (adres tipi, posta kodu, `CariId` değiştirme) | Posta kodu hatası `PostaKodu` alanında; diğerleri form başında |
+| 1004 | Cari ya da adres bulunamadı | "Kayıt bulunamadı", listeyi yenile |
+| 1005 | Adres zaten silinmiş | Bilgi mesajı, listeyi yenile |
+| 1203 | Netsis'e bağlı carinin adresi değiştirilemez/silinemez | Bilgi mesajı; normalde arayüz zaten salt okunurdur |
+
+### 6A.5 Salt okunur durum
+
+`NetsisBagliMi: true` olan carinin adres listesinde Ekle, Düzenle ve Sil **gizlenir** (devre dışı bırakılmaz), üstte bilgi bandı gösterilir
+(carinin kendi formundaki bantla aynı metin). Yetki olmasa bile (`KAYDET`/`SIL` yok) aynı düğmeler gizlenir.
 
 ## 7. Geliştirme ve dağıtım
 

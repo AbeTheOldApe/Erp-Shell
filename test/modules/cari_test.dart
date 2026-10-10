@@ -21,10 +21,16 @@ import 'package:trina_grid/trina_grid.dart';
 import '../helpers/shell_harness.dart';
 
 class _FakeContext implements ModuleContext {
-  _FakeContext(this.permissions);
+  _FakeContext(this.permissions, {this.adresler});
 
   @override
   final ModulePermissions permissions;
+
+  /// Permissions of the Adresler tab; defaults to the module's own.
+  final ModulePermissions? adresler;
+
+  @override
+  ModulePermissions subPermissions(String name) => adresler ?? permissions;
   final dirtyChanges = <bool>[];
   final queries = <Map<String, String>>[];
   final _changes = StreamController<Map<String, String>>.broadcast();
@@ -455,7 +461,8 @@ void main() {
 
 /// A context that opens the module with a query (deep link).
 class _DeepLinkContext extends _FakeContext {
-  _DeepLinkContext(_FakeContext base, this._query) : super(base.permissions);
+  _DeepLinkContext(_FakeContext base, this._query)
+    : super(base.permissions, adresler: base.adresler);
 
   final Map<String, String> _query;
 

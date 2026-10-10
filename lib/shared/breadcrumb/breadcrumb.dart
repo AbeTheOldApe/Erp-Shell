@@ -17,8 +17,7 @@ class BreadcrumbItem {
 /// into a "…" menu; if even that is too wide only "…" and the last item
 /// remain. The last item is always shown (ellipsized if needed).
 class Breadcrumb extends StatelessWidget {
-  const Breadcrumb({required this.items, super.key})
-    : assert(items.length > 0);
+  const Breadcrumb({required this.items, super.key}) : assert(items.length > 0);
 
   final List<BreadcrumbItem> items;
 
@@ -93,9 +92,7 @@ class Breadcrumb extends StatelessWidget {
         item.label,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: isLast
-            ? style
-            : style.copyWith(color: scheme.primary),
+        style: isLast ? style : style.copyWith(color: scheme.primary),
       );
       if (isLast) {
         widgets.add(Flexible(flex: 2, child: text));

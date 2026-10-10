@@ -8,10 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/shell_harness.dart';
 
-Finder _tabBarTab(String title) => find.descendant(
-  of: find.byType(ShellTabBar),
-  matching: find.text(title),
-);
+Finder _tabBarTab(String title) =>
+    find.descendant(of: find.byType(ShellTabBar), matching: find.text(title));
 
 Future<void> _openFromPanel(
   WidgetTester tester,
@@ -138,7 +136,9 @@ void main() {
 
     String title() => tester
         .widget<Text>(
-          find.descendant(of: find.byType(AppBar), matching: find.byType(Text)).first,
+          find
+              .descendant(of: find.byType(AppBar), matching: find.byType(Text))
+              .first,
         )
         .data!;
 
@@ -157,9 +157,18 @@ void main() {
   testWidgets('menu differs per user', (tester) async {
     await pumpApp(tester, username: 'satis');
     final panel = find.byType(SideMenuPanel);
-    expect(find.descendant(of: panel, matching: find.text('Satış')), findsOneWidget);
-    expect(find.descendant(of: panel, matching: find.text('Depo')), findsNothing);
-    expect(find.descendant(of: panel, matching: find.text('Ayarlar')), findsNothing);
+    expect(
+      find.descendant(of: panel, matching: find.text('Satış')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: panel, matching: find.text('Depo')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: panel, matching: find.text('Ayarlar')),
+      findsNothing,
+    );
   });
 
   testWidgets('menu search uses Turkish folding', (tester) async {

@@ -91,7 +91,9 @@ class _ShellTabBarState extends ConsumerState<ShellTabBar> {
 
   void _ensureVisible(String? tabKey) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final tabContext = tabKey == null ? null : _tabKeys[tabKey]?.currentContext;
+      final tabContext = tabKey == null
+          ? null
+          : _tabKeys[tabKey]?.currentContext;
       if (tabContext == null || !tabContext.mounted) return;
       Scrollable.ensureVisible(
         tabContext,

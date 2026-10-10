@@ -83,8 +83,10 @@ class OpenModulesSheet extends ConsumerWidget {
                         },
                         onLongPress: () => showModalBottomSheet<void>(
                           context: context,
-                          builder: (_) =>
-                              _TabActionsSheet(controller: controller, tabKey: tab.tabKey),
+                          builder: (_) => _TabActionsSheet(
+                            controller: controller,
+                            tabKey: tab.tabKey,
+                          ),
                         ),
                         trailing: tab.pinned
                             ? null

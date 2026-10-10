@@ -21,8 +21,7 @@ abstract class KeyValueStore {
 
 /// In-memory store; used in tests and on platforms without web storage.
 class MemoryKeyValueStore implements KeyValueStore {
-  MemoryKeyValueStore([Map<String, String>? initial])
-    : _values = {...?initial};
+  MemoryKeyValueStore([Map<String, String>? initial]) : _values = {...?initial};
 
   final Map<String, String> _values;
   final StreamController<String> _external = StreamController.broadcast();

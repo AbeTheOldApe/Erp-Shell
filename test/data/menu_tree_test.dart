@@ -8,17 +8,26 @@ import 'package:flutter_test/flutter_test.dart';
 
 const _view = ModulePermissions(canView: true);
 
-MenuNode _leaf(int id, String title, String key, {int order = 0, bool view = true}) =>
-    MenuNode(
-      id: id,
-      title: title,
-      moduleKey: key,
-      sortOrder: order,
-      permissions: view ? _view : const ModulePermissions(),
-    );
+MenuNode _leaf(
+  int id,
+  String title,
+  String key, {
+  int order = 0,
+  bool view = true,
+}) => MenuNode(
+  id: id,
+  title: title,
+  moduleKey: key,
+  sortOrder: order,
+  permissions: view ? _view : const ModulePermissions(),
+);
 
-MenuNode _group(int id, String title, List<MenuNode> children, {int order = 0}) =>
-    MenuNode(id: id, title: title, sortOrder: order, children: children);
+MenuNode _group(
+  int id,
+  String title,
+  List<MenuNode> children, {
+  int order = 0,
+}) => MenuNode(id: id, title: title, sortOrder: order, children: children);
 
 List<String> _titles(List<MenuNode> nodes) => [
   for (final node in nodes) ...[node.title, ..._titles(node.children)],
@@ -35,7 +44,10 @@ void main() {
   group('normalize', () {
     test('sorts siblings by sortOrder', () {
       final menu = MenuTree.normalize([
-        _group(2, 'B', [_leaf(21, 'b2', 'b2', order: 2), _leaf(22, 'b1', 'b1', order: 1)], order: 20),
+        _group(2, 'B', [
+          _leaf(21, 'b2', 'b2', order: 2),
+          _leaf(22, 'b1', 'b1', order: 1),
+        ], order: 20),
         _group(1, 'A', [_leaf(11, 'a', 'a')], order: 10),
       ]);
       expect(_titles(menu), ['A', 'a', 'B', 'b1', 'b2']);
@@ -66,7 +78,10 @@ void main() {
 
   group('filter', () {
     final menu = MenuTree.normalize([
-      _group(1, 'Satış', [_leaf(11, 'Siparişler', 'siparis'), _leaf(12, 'Müşteriler', 'musteri')]),
+      _group(1, 'Satış', [
+        _leaf(11, 'Siparişler', 'siparis'),
+        _leaf(12, 'Müşteriler', 'musteri'),
+      ]),
       _group(2, 'Üretim', [_leaf(21, 'İş Emri', 'is-emri')]),
       _group(3, 'Raporlar', [
         _group(31, 'Depo Raporları', [_leaf(311, 'Stok Raporu', 'rapor-stok')]),
@@ -80,7 +95,10 @@ void main() {
     test('matches with Turkish folding', () {
       expect(_titles(MenuTree.filter(menu, 'iş emri')), ['Üretim', 'İş Emri']);
       expect(_titles(MenuTree.filter(menu, 'IŞ EMRİ')), ['Üretim', 'İş Emri']);
-      expect(_titles(MenuTree.filter(menu, 'siparis')), ['Satış', 'Siparişler']);
+      expect(_titles(MenuTree.filter(menu, 'siparis')), [
+        'Satış',
+        'Siparişler',
+      ]);
     });
 
     test('keeps parents of deep matches', () {
@@ -162,7 +180,10 @@ void main() {
       final menu = _loadMock('satis');
       expect(keysOf('satis'), ['siparis', 'musteri']);
       expect(menu.map((n) => n.title), ['Satış']);
-      expect(MenuTree.findLeaf(menu, 'siparis')!.permissions!.canDelete, isFalse);
+      expect(
+        MenuTree.findLeaf(menu, 'siparis')!.permissions!.canDelete,
+        isFalse,
+      );
     });
   });
 }

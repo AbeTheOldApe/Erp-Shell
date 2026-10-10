@@ -97,16 +97,23 @@ void main() {
         recent.touch(key);
       }
       expect(container.read(recentModulesProvider), ['c', 'f', 'e', 'd', 'b']);
-      expect(
-        jsonDecode(local.read(StorageKeys.recentModules(1))!),
-        ['c', 'f', 'e', 'd', 'b'],
-      );
+      expect(jsonDecode(local.read(StorageKeys.recentModules(1))!), [
+        'c',
+        'f',
+        'e',
+        'd',
+        'b',
+      ]);
     });
   });
 
   testWidgets('Cockpit cannot be closed', (tester) async {
     await pumpApp(tester);
-    await _key(tester, LogicalKeyboardKey.keyW, modifier: LogicalKeyboardKey.altLeft);
+    await _key(
+      tester,
+      LogicalKeyboardKey.keyW,
+      modifier: LogicalKeyboardKey.altLeft,
+    );
     expect(_tab('Cockpit'), findsOneWidget);
 
     await _open(tester, 'Depo', 'Stok Durumu');
@@ -132,9 +139,7 @@ void main() {
     expect(_tab('Müşteriler'), findsOneWidget);
   });
 
-  testWidgets('favorites: star, section, kept across sessions', (
-    tester,
-  ) async {
+  testWidgets('favorites: star, section, kept across sessions', (tester) async {
     final favorites = FakeFavoritesRepository();
     await pumpApp(tester, favorites: favorites);
     await tester.tap(_inPanel(find.text('Satış')));
@@ -169,10 +174,20 @@ void main() {
     await pumpApp(tester);
     await _open(tester, 'Depo', 'Stok Durumu');
     await _open(tester, 'Satış', 'Müşteriler');
-    await _key(tester, LogicalKeyboardKey.keyK, modifier: LogicalKeyboardKey.controlLeft);
+    await _key(
+      tester,
+      LogicalKeyboardKey.keyK,
+      modifier: LogicalKeyboardKey.controlLeft,
+    );
     final palette = find.byType(CommandPalette);
-    expect(find.descendant(of: palette, matching: find.text('Stok Durumu')), findsOneWidget);
-    expect(find.descendant(of: palette, matching: find.text('Müşteriler')), findsNothing);
+    expect(
+      find.descendant(of: palette, matching: find.text('Stok Durumu')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: palette, matching: find.text('Müşteriler')),
+      findsNothing,
+    );
   });
 
   testWidgets('recent modules are kept across sessions and shown in the '
@@ -184,22 +199,42 @@ void main() {
 
     await _reload(tester);
     await pumpApp(tester, localStore: local);
-    await _key(tester, LogicalKeyboardKey.keyK, modifier: LogicalKeyboardKey.controlLeft);
+    await _key(
+      tester,
+      LogicalKeyboardKey.keyK,
+      modifier: LogicalKeyboardKey.controlLeft,
+    );
     final palette = find.byType(CommandPalette);
-    expect(find.descendant(of: palette, matching: find.text('Son kullanılanlar')), findsOneWidget);
-    expect(find.descendant(of: palette, matching: find.text('Müşteriler')), findsOneWidget);
-    expect(find.descendant(of: palette, matching: find.text('Stok Durumu')), findsOneWidget);
+    expect(
+      find.descendant(of: palette, matching: find.text('Son kullanılanlar')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: palette, matching: find.text('Müşteriler')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: palette, matching: find.text('Stok Durumu')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('command palette: Ctrl+K, search, Enter opens the module', (
     tester,
   ) async {
     await pumpApp(tester);
-    await _key(tester, LogicalKeyboardKey.keyK, modifier: LogicalKeyboardKey.controlLeft);
+    await _key(
+      tester,
+      LogicalKeyboardKey.keyK,
+      modifier: LogicalKeyboardKey.controlLeft,
+    );
     expect(find.byType(CommandPalette), findsOneWidget);
 
     await tester.enterText(
-      find.descendant(of: find.byType(CommandPalette), matching: find.byType(TextField)),
+      find.descendant(
+        of: find.byType(CommandPalette),
+        matching: find.byType(TextField),
+      ),
       'MUSTERI',
     );
     await tester.pumpAndSettle();
@@ -216,13 +251,21 @@ void main() {
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
 
-    await _key(tester, LogicalKeyboardKey.keyW, modifier: LogicalKeyboardKey.altLeft);
+    await _key(
+      tester,
+      LogicalKeyboardKey.keyW,
+      modifier: LogicalKeyboardKey.altLeft,
+    );
     expect(find.text('Kaydedilmemiş değişiklikler'), findsOneWidget);
     await tester.tap(find.text('Vazgeç'));
     await tester.pumpAndSettle();
     expect(_tab('Müşteriler'), findsOneWidget);
 
-    await _key(tester, LogicalKeyboardKey.keyW, modifier: LogicalKeyboardKey.altLeft);
+    await _key(
+      tester,
+      LogicalKeyboardKey.keyW,
+      modifier: LogicalKeyboardKey.altLeft,
+    );
     await tester.tap(find.text('Değişiklikleri at'));
     await tester.pumpAndSettle();
     expect(_tab('Müşteriler'), findsNothing);

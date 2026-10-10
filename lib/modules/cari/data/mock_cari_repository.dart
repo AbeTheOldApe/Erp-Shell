@@ -33,6 +33,9 @@ class MockCariRepository implements CariRepository {
   final _records = <int, Cari>{};
   late int _nextId;
 
+  /// Whether the mock Cari [id] is linked to Netsis (every 9th).
+  static bool isNetsisLinked(int id) => id % 9 == 0;
+
   /// Every 7th is passive, every 9th is linked to Netsis.
   static Cari _seed(int i) {
     final name = '${_names[i % _names.length]} ${_suffixes[i % 3]}';
@@ -55,7 +58,7 @@ class MockCariRepository implements CariRepository {
       hizmetTedarikcisi: i % 4 == 0,
       otomatikEkstre: i % 6 == 0,
       aktif: i % 7 != 0,
-      netsisBagli: i % 9 == 0,
+      netsisBagli: isNetsisLinked(i),
     );
   }
 

@@ -80,7 +80,9 @@ class _SideMenuPanelState extends ConsumerState<SideMenuPanel> {
       // The session dialog takes over.
       return;
     } catch (_) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.favoriteUpdateFailed)));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.favoriteUpdateFailed)),
+      );
       return;
     }
     if (removing && undoable) {
@@ -153,10 +155,7 @@ class _SideMenuPanelState extends ConsumerState<SideMenuPanel> {
     final openGroups = searching ? MenuTree.groupIds(visible) : expansion;
     final favoriteLeaves = searching
         ? const <MenuNode>[]
-        : [
-            for (final key in favoriteKeys)
-              ?MenuTree.findLeaf(nodes, key),
-          ];
+        : [for (final key in favoriteKeys) ?MenuTree.findLeaf(nodes, key)];
     final tree = _flatten(visible, openGroups);
     Widget row(MenuNode node, int depth, {bool inFavorites = false}) =>
         _buildRow(
@@ -276,7 +275,11 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-List<_Row> _flatten(List<MenuNode> nodes, Set<int> openGroups, [int depth = 0]) {
+List<_Row> _flatten(
+  List<MenuNode> nodes,
+  Set<int> openGroups, [
+  int depth = 0,
+]) {
   return [
     for (final node in nodes) ...[
       _Row(node, depth),

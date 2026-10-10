@@ -51,13 +51,12 @@ class FakeFavoritesRepository implements FavoritesRepository {
 /// Loads the code of every deferred module in the real zone. On the VM a
 /// `loadLibrary()` first called inside one test's fake-async zone never
 /// completes in later tests; once loaded, later calls complete at once.
-Future<void> preloadDeferredModules(WidgetTester tester) =>
-    tester.runAsync(
-      () => Future.wait([
-        for (final def in moduleRegistry.values)
-          if (def.load != null) def.load!(),
-      ]),
-    );
+Future<void> preloadDeferredModules(WidgetTester tester) => tester.runAsync(
+  () => Future.wait([
+    for (final def in moduleRegistry.values)
+      if (def.load != null) def.load!(),
+  ]),
+);
 
 /// Sets the logical window size for the test.
 void setWindowSize(WidgetTester tester, Size size) {
